@@ -1,5 +1,15 @@
-console.log("connecting...");
-const socket = io("http://localhost:8800");
+// const socket = io();
+
+socket.on("connect", () => {
+  console.log("connected with server.");
+});
+
+socket.on("newUserResponse", (newUser) => {
+  // console.log("qweqwe");
+  localStorage.setItem("user", newUser.userName);
+  const Users = newUser.map((item) => item.userName);
+  console.log(Users);
+});
 
 const sendMessage = () => {
   const input = document.getElementById("name");
@@ -7,7 +17,7 @@ const sendMessage = () => {
     userName: input.value,
     socketID: socket.id,
   };
-
   socket.emit("newUser", data);
+
   // input.value = "";
 };

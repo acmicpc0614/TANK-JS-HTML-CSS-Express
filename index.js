@@ -33,13 +33,13 @@ const DOWN = "DOWN";
 const LEFT = "LEFT";
 const RIGHT = "RIGHT";
 
-socketIO.on("connection", (socket) => {
-  console.log("connected.");
+socketIO.on("connect", (socket) => {
+  console.log("connected with client");
+
   socket.on("newUser", (data) => {
-    console.log(data);
     const newUser = {
       userName: data.userName,
-      team: data.team,
+      team: data.team || 1,
       direction: DOWN,
       socketID: data.socketID,
       level: 1,
@@ -48,10 +48,11 @@ socketIO.on("connection", (socket) => {
     };
     users.push(newUser);
     console.log(newUser.userName, " is connected in Team ", newUser.team);
-    socketIO.emit("newUserResponse", newUser);
+    socketIO.emit("newUserResponse", users);
   });
-  socket.on("message", (message) => {
-    console.log(message);
+
+  socket.on("test", () => {
+    console.log("working now");
   });
 });
 

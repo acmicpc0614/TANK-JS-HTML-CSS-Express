@@ -41,10 +41,10 @@ const main = () => {
   shut();
   update();
   draw();
-  if (gameOver) {
-    alert("Game Over. Your Score is " + tankBody.length);
-    clearInterval(gameLoop);
-  }
+  // if (gameOver) {
+  //   alert("Game Over. Your Score is " + tankBody.length);
+  //   clearInterval(gameLoop);
+  // }
 };
 
 let gameLoop = setInterval(main, FLAME);
@@ -109,7 +109,7 @@ const bulletMove = (item) => {
 
 const isGameOver = () => {
   //   return tankOutOfBounds() || tankIntersectSelf() || tankMeetMine();
-  return tankIntersectSelf();
+  // return tankIntersectSelf();
 };
 
 const rotate = (_x, _y, _dir) => {
