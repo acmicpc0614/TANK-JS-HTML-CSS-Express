@@ -50,6 +50,9 @@ socketIO.on("connection", (socket) => {
     console.log(newUser.userName, " is connected in Team ", newUser.team);
     socketIO.emit("newUserResponse", newUser);
   });
+  socket.on("message", (message) => {
+    console.log(message);
+  });
 });
 
 client_http.listen(F_PORT, () => {
