@@ -7,24 +7,25 @@
     <meta http-equiv="X-UA-Compatible" content="ie=edge" />
     <title>TANK</title>
     <script src="./socket.io/socket.io.js"></script>
-    <!-- <script src="game.js" defer></script>
-    <script src="tank.js" defer></script> -->
+    <script src="game.js" defer></script>
+  <!--   <script src="tank.js" defer></script> -->
     <script src="trans.js" defer></script>
     <!-- <script src="tankUtil.js" defer></script> -->
 
   </head>
   <body>
       
-        <input id="name"/>
-        <button onclick=sendMessage()> asdf</button>
+    <div id="register">
+      <input id="name"/>
+      <button onclick=sendMessage()>start</button>
+    </div>
       <!-- <div id="health-bar"></div> -->
-    <!-- <div id="game-board"></div> -->
+    <div id="game-board"></div>
 
   </body>
-
   <script>
-console.log("connecting...");
-const socket = io.connect("http://192.168.144.110:8800");
+    console.log("connecting...");
+    const socket = io.connect("http://192.168.144.110:8800");
 
   </script>
 </html>

@@ -1,39 +1,69 @@
 const gameBoard = document.getElementById("game-board");
 const healthBoard = document.getElementById("health-bar");
+
+/*********Transfer*************/
+
+socket.on("connect", () => {
+  console.log("connected with server.");
+});
+
+socket.on("newUserResponse", (newUser) => {
+  if (newUser.socketID === socket.id) {
+    init(newUser);
+  }
+});
+
+const sendMessage = () => {
+  const input = document.getElementById("name");
+  const data = {
+    userName: input.value,
+    socketID: socket.id,
+  };
+  socket.emit("newUser", data);
+};
+
 /*********GAME Setting*************/
 let gameOver = false;
-const FLAME = Math.floor(1000 / 50);
+const FLAME = Math.floor(1000 / 20); // every 50ms render
 const BOARD_SIZE = 180;
+let users = [];
+let stack = [];
 
 /*********TANK Setting*************/
 const UP = "UP";
 const DOWN = "DOWN";
 const LEFT = "LEFT";
 const RIGHT = "RIGHT";
-let TANK_DIR = DOWN;
-const para = [3.5, 3, 2.6, 2];
-const TANK_SPEED = 5;
-const TANK_LEVEL = 3;
-let TANK_HEALTH = 100 + Math.floor(100 / para[TANK_LEVEL]);
+let TANK_DIR;
+let tankBody = [];
+let level;
+let SHOT_CYCLE;
+let SHOT_TIME;
+let BULLET_LIFE;
+let BULLET_DAMAGE;
 
-const tankBody = [
-  { x: 110, y: 10 },
-  { x: 110, y: 9 },
-  { x: 111, y: 11 },
-  { x: 111, y: 10 },
-  { x: 111, y: 9 },
-  { x: 112, y: 10 },
-  { x: 112, y: 9 },
-];
-
-/*********Shot Setting*************/
-let SHOT_CYCLE = Math.floor(FLAME * para[TANK_LEVEL]);
-let SHOT_TIME = 0;
-const BULLET_DAMAGE = 40;
-const BULLET_LIFE = 100 + Math.floor(100 / para[TANK_LEVEL]);
-const BULLET_SPEED = 5;
-
-let stack = [];
+const init = (newUser) => {
+  console.log("initializing");
+  const middlePoint = { x: newUser.x, y: newUser.y };
+  console.log(middlePoint);
+  tankBody = [
+    { x: middlePoint.x - 1, y: newUser.y },
+    { x: middlePoint.x - 1, y: newUser.y - 1 },
+    { x: middlePoint.x, y: newUser.y + 1 },
+    { x: middlePoint.x, y: newUser.y },
+    { x: middlePoint.x, y: newUser.y - 1 },
+    { x: middlePoint.x + 1, y: newUser.y },
+    { x: middlePoint.x + 1, y: newUser.y - 1 },
+  ];
+  TANK_DIR = newUser.direction;
+  level = newUser.TANK_LEVEL;
+  SHOT_CYCLE = newUser.SHOT_CYCLE;
+  BULLET_LIFE = newUser.BULLET_LIFE;
+  BULLET_DAMAGE = newUser.BULLET_DAMAGE;
+  SHOT_TIME = newUser.SHOT_TIME;
+  console.log(tankBody);
+  let gameLoop = setInterval(main, FLAME);
+};
 
 /*********  ACTION  *************/
 const main = () => {
@@ -46,8 +76,6 @@ const main = () => {
   //   clearInterval(gameLoop);
   // }
 };
-
-let gameLoop = setInterval(main, FLAME);
 
 const shut = () => {
   if (SHOT_TIME === 0) {
