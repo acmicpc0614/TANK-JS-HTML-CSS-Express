@@ -1,6 +1,15 @@
 const gameBoard = document.getElementById("game-board");
 const healthBoard = document.getElementById("health-bar");
 
+/*********GAME Setting*************/
+let gameOver = false;
+const FLAME = Math.floor(1000 / 20); // every 50ms render
+const BOARD_SIZE = 180;
+let users = [];
+let stack = [];
+const ME = "ME";
+const OTHER = "OTHER";
+
 /*********Transfer*************/
 
 socket.on("connect", () => {
@@ -13,6 +22,12 @@ socket.on("newUserResponse", (newUser) => {
   }
 });
 
+socket.on("stateOfUsers", (data) => {
+  users = data.users;
+  stack = data.stack;
+  draw();
+});
+
 const sendMessage = () => {
   const input = document.getElementById("name");
   const data = {
@@ -22,20 +37,12 @@ const sendMessage = () => {
   socket.emit("newUser", data);
 };
 
-/*********GAME Setting*************/
-let gameOver = false;
-const FLAME = Math.floor(1000 / 20); // every 50ms render
-const BOARD_SIZE = 180;
-let users = [];
-let stack = [];
-
 /*********TANK Setting*************/
 const UP = "UP";
 const DOWN = "DOWN";
 const LEFT = "LEFT";
 const RIGHT = "RIGHT";
 let TANK_DIR;
-let tankBody = [];
 let level;
 let SHOT_CYCLE;
 let SHOT_TIME;
@@ -44,95 +51,40 @@ let BULLET_DAMAGE;
 
 const init = (newUser) => {
   console.log("initializing");
-  const middlePoint = { x: newUser.x, y: newUser.y };
-  console.log(middlePoint);
-  tankBody = [
-    { x: middlePoint.x - 1, y: newUser.y },
-    { x: middlePoint.x - 1, y: newUser.y - 1 },
-    { x: middlePoint.x, y: newUser.y + 1 },
-    { x: middlePoint.x, y: newUser.y },
-    { x: middlePoint.x, y: newUser.y - 1 },
-    { x: middlePoint.x + 1, y: newUser.y },
-    { x: middlePoint.x + 1, y: newUser.y - 1 },
-  ];
+
   TANK_DIR = newUser.direction;
   level = newUser.TANK_LEVEL;
   SHOT_CYCLE = newUser.SHOT_CYCLE;
   BULLET_LIFE = newUser.BULLET_LIFE;
   BULLET_DAMAGE = newUser.BULLET_DAMAGE;
   SHOT_TIME = newUser.SHOT_TIME;
-  console.log(tankBody);
-  let gameLoop = setInterval(main, FLAME);
+
+  let gameLoop = setInterval(main, FLAME + 1000);
 };
 
 /*********  ACTION  *************/
 const main = () => {
   getInputData();
-  shut();
-  update();
-  draw();
-  // if (gameOver) {
-  //   alert("Game Over. Your Score is " + tankBody.length);
-  //   clearInterval(gameLoop);
-  // }
-};
-
-const shut = () => {
-  if (SHOT_TIME === 0) {
-    makeBullet();
-    SHOT_TIME = SHOT_CYCLE;
-  } else SHOT_TIME -= 1;
-};
-
-const makeBullet = () => {
-  const bullet = {
-    x: tankBody[3].x,
-    y: tankBody[3].y,
-    dir: TANK_DIR,
-    life: BULLET_LIFE,
-    damage: BULLET_DAMAGE,
-  };
-  stack.push(bullet);
 };
 
 const getInputData = () => {
   window.addEventListener("keydown", handleSet, false);
 };
 
-const update = () => {
-  updateStack();
-  gameOver = isGameOver();
-};
-
 const draw = () => {
   gameBoard.innerHTML = "";
-  drawBullet(gameBoard);
-  drawTank(gameBoard);
+  drawBullet(gameBoard, stack);
+  // console.log(users.length);
+  for (item of users) {
+    const tankBody = [];
+    rotate(tankBody, item.x, item.y, item.direction);
+    const who = item.socketID === socket.id ? ME : OTHER;
+    drawTank(gameBoard, tankBody, who);
+  }
 
   // let healthTxt = "Health " + TANK_HEALTH;
 
   // healthBoard.innerHTML = healthTxt;
-};
-
-const updateStack = () => {
-  for (item of stack) {
-    bulletMove(item);
-  }
-  stack = stack.filter(
-    (item) =>
-      item.life > 0 &&
-      item.x <= BOARD_SIZE &&
-      item.y <= BOARD_SIZE &&
-      item.x >= 0 &&
-      item.y >= 0
-  );
-};
-const bulletMove = (item) => {
-  if (item.dir === UP) item.y -= 1;
-  if (item.dir === DOWN) item.y += 1;
-  if (item.dir === LEFT) item.x -= 1;
-  if (item.dir === RIGHT) item.x += 1;
-  item.life -= 1;
 };
 
 const isGameOver = () => {
@@ -140,7 +92,7 @@ const isGameOver = () => {
   // return tankIntersectSelf();
 };
 
-const rotate = (_x, _y, _dir) => {
+const rotate = (tankBody, _x, _y, _dir) => {
   if (_dir === UP) {
     tankBody[0] = { x: _x - 1, y: _y };
     tankBody[1] = { x: _x - 1, y: _y + 1 };
@@ -177,42 +129,33 @@ const rotate = (_x, _y, _dir) => {
 };
 
 const handleSet = (event) => {
-  if (event.key === "ArrowUp") setInputDir(0, -1, UP);
-  else if (event.key === "ArrowDown") setInputDir(0, 1, DOWN);
-  else if (event.key === "ArrowRight") setInputDir(1, 0, RIGHT);
-  else if (event.key === "ArrowLeft") setInputDir(-1, 0, LEFT);
+  if (event.key === "ArrowUp") setDirection(UP);
+  else if (event.key === "ArrowDown") setDirection(DOWN);
+  else if (event.key === "ArrowRight") setDirection(RIGHT);
+  else if (event.key === "ArrowLeft") setDirection(LEFT);
+};
+const setDirection = (direction) => {
+  const data = {
+    socketID: socket.id,
+    direction: direction,
+  };
+  socket.emit("changeDirection", data);
 };
 
-const setInputDir = (_x, _y, _dir) => {
-  if (TANK_DIR !== _dir) {
-    rotate(tankBody[3].x, tankBody[3].y, _dir);
-  }
-  const middlePoint = tankBody[3];
-  if (middlePoint.x < 3 && _dir === LEFT) return;
-  if (middlePoint.x > BOARD_SIZE - 3 && _dir === RIGHT) return;
-  if (middlePoint.y < 3 && _dir === UP) return;
-  if (middlePoint.y > BOARD_SIZE - 3 && _dir === DOWN) return;
-
-  for (let i = 0; i < tankBody.length; i++) {
-    tankBody[i].x += _x;
-    tankBody[i].y += _y;
-  }
-
-  TANK_DIR = _dir;
-};
-
-const drawTank = (gmaeBoard) => {
+const drawTank = (gmaeBoard, tankBody, who) => {
   for (segment of tankBody) {
     // const segment = tankBody[i];
     const tankElement = document.createElement("div");
     tankElement.style.gridRowStart = segment.y;
     tankElement.style.gridColumnStart = segment.x;
-    tankElement.classList.add("tank");
+    who === ME
+      ? tankElement.classList.add("tank-me")
+      : tankElement.classList.add("tank");
     gmaeBoard.appendChild(tankElement);
   }
 };
 
-const drawBullet = (gameboard) => {
+const drawBullet = (gameboard, stack) => {
   for (segment of stack) {
     const bulletElement = document.createElement("div");
     bulletElement.style.gridRowStart = segment.y;
