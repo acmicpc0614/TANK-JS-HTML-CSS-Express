@@ -5,6 +5,7 @@ const server = express();
 const cors = require("cors");
 const { DefaultSerializer } = require("v8");
 const { kill } = require("process");
+const { dir } = require("console");
 const server_http = require("http").Server(server);
 const PORT = 8800;
 const socketIO = require("socket.io")(server_http, {
@@ -30,6 +31,8 @@ client.get("/", (req, res) => {
 
 let users = [];
 let stack = [];
+let T1S = 0;
+let T2S = 0;
 
 /*********TANK Setting*************/
 
@@ -41,15 +44,18 @@ const UP = "UP";
 const DOWN = "DOWN";
 const LEFT = "LEFT";
 const RIGHT = "RIGHT";
+
 const ALIVE = "ALIVE";
+const BREAK = "BREAK";
 const DEATH = "DEATH";
+
+const TEAM1 = "TEAM1";
+const TEAM2 = "TEAM2";
 
 const para = [0, 10, 23, 30];
 const TANK_SPEED = 5;
 const TANK_LEVEL = 0;
 let TANK_HEALTH = 100 + Math.min(para[TANK_LEVEL] * 2, 50);
-let T1_scr = 0;
-let T2_scr = 0;
 
 /*********Shot Setting*************/
 
@@ -127,6 +133,22 @@ const tankMove = (item) => {
   return item;
 };
 
+const xdelte = (direction) => {
+  let tmp = 0;
+  if (direction === LEFT) tmp = -1;
+  else if (direction === RIGHT) tmp = 1;
+  else tmp = 0;
+  return tmp;
+};
+
+const ydelte = (direction) => {
+  let tmp = 0;
+  if (direction === UP) tmp = -1;
+  else if (direction === DOWN) tmp = 1;
+  else tmp = 0;
+  return tmp;
+};
+
 const setInputDir = (item) => {
   if (item.x < 3 && item.direction === LEFT) return item;
   if (item.x > BOARD_SIZE - 3 && item.direction === RIGHT) return item;
@@ -148,10 +170,6 @@ const isCrashWithBullet = (but1, but2) => {
   return false;
 };
 
-const increateKill = (bullet) => {
-  for (item of users) if (item.socketID === bullet.socketID) item.kill += 1;
-};
-
 const checkCrash = () => {
   for (bullet of stack) {
     for (item of users) {
@@ -165,7 +183,9 @@ const checkCrash = () => {
               ? { ...item, kill: item.kill + 1 }
               : item
           );
-          item.alive = DEATH;
+          item.alive = BREAK;
+          if (bullet.team === TEAM1) T1S += 1;
+          else T2S += 1;
         }
       }
     }
@@ -185,6 +205,9 @@ const mainLoop = () => {
 };
 
 const updateUser = () => {
+  users = users.map((item) =>
+    item.alive === BREAK ? { ...item, alive: DEATH } : item
+  );
   for (item of users) {
     shut(item);
   }
@@ -198,15 +221,22 @@ const isExist = (id) => {
   return tmp;
 };
 
-let boradCast = setInterval(() => {
+let broadcast = setInterval(() => {
   mainLoop();
-  users = users.filter((item) => item.alive === ALIVE);
+  users = users.filter((item) => item.alive !== DEATH);
   const data = {
     users: users,
     stack: stack,
+    T1S: T1S,
+    T2S: T2S,
   };
   socketIO.emit("stateOfUsers", data);
 }, FRAME);
+
+// const handleChange = (item, data) => {
+//   item = { ...item, direction: data.direction };
+//   tankMove(item);
+// };
 
 /*****************SOCKET**********************/
 socketIO.on("connect", (socket) => {
@@ -246,7 +276,12 @@ socketIO.on("connect", (socket) => {
   socket.on("changeDirection", (data) => {
     users = users.map((item) =>
       item.socketID === data.socketID
-        ? { ...item, direction: data.direction }
+        ? {
+            ...item,
+            direction: data.direction,
+            x: item.x + xdelte(data.direction),
+            y: item.y + ydelte(data.direction),
+          }
         : item
     );
   });

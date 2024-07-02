@@ -63,7 +63,7 @@ body {
   /* border: 0.25vmin solid gray; */
 }
 .food2 {
-  background-color: rgb(61, 61, 192);;
+  background-color: rgb(61, 61, 192);
   border-radius: 50%;
   /* border: 0.25vmin solid gray; */
 }
@@ -74,16 +74,48 @@ body {
 }
 
 #score {
-  margin-bottom: 300px;
+  margin-bottom: 100px;
   font-size: 40px;
   color: #fff;
   border-radius: 0.5rem;
   border-bottom: 1px  solid #eeeeee;
   text-align: center;
+  width: 100px;
 }
 
+#t1-txt {
+  color: rgb(255, 97, 97);
+  font-size: 40px;
+  text-align: center;
+  width: 50px;
+}
+
+#t2-txt {
+  color: rgb(61, 61, 192);
+  font-size: 40px;
+  text-align: center;
+  width: 50px;
+}
+
+#vs {
+  color: rgb(255, 255, 255);
+  font-size: 40px;
+  text-align: center;
+  width: 20px;
+
+}
+
+.team-score {
+  display: flex;
+  flex-direction: row;
+  gap: 1rem;
+}
 #register {
-  margin: 3rem;
+  margin-top: 3rem;
+  margin-bottom: 3rem;
+  width: 500px;
+  display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
 }

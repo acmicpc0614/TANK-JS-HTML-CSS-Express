@@ -9,11 +9,18 @@ let users = [];
 let stack = [];
 const ME = "ME";
 const OTHER = "OTHER";
+
 const ALIVE = "ALIVE";
+const BREAK = "BREAK";
 const DEATH = "DEATH";
+
 const TEAM1 = "TEAM1";
 const TEAM2 = "TEAM2";
+
 let myTeam = "";
+
+let T1S = 0;
+let T2S = 0;
 
 /*********Transfer*************/
 
@@ -30,7 +37,8 @@ socket.on("newUserResponse", (newUser) => {
 socket.on("stateOfUsers", (data) => {
   users = data.users;
   stack = data.stack;
-
+  T1S = data.T1S;
+  T2S = data.T2S;
   for (item of users) if (item.socketID === socket.id) init(item);
   draw();
 });
@@ -97,6 +105,7 @@ const init = (newUser) => {
   let gameLoop = setInterval(main, FLAME);
 
   inputScore(newUser);
+  inputTeamScore();
 };
 
 /*********  ACTION  *************/
@@ -112,6 +121,27 @@ const inputScore = (newUser) => {
   score.appendChild(kills);
 };
 
+const inputTeamScore = () => {
+  let t1Txt = document.getElementById("t1-txt");
+  t1Txt.innerHTML = "";
+  let kills1 = document.createElement("h1");
+  kills1.innerHTML = T1S;
+  t1Txt.appendChild(kills1);
+
+  let t2Txt = document.getElementById("t2-txt");
+  t2Txt.innerHTML = "";
+  let kills2 = document.createElement("h1");
+  kills2.innerHTML = T2S;
+  t2Txt.appendChild(kills2);
+
+  let vs = document.getElementById("vs");
+  vs.innerHTML = "";
+  let txt = document.createElement("h1");
+  txt.innerHTML = ":";
+
+  vs.appendChild(txt);
+};
+
 const getInputData = () => {
   window.addEventListener("keydown", handleSet, false);
 };
@@ -119,16 +149,18 @@ const getInputData = () => {
 const draw = () => {
   gameBoard.innerHTML = "";
   drawBullet(gameBoard, stack);
-  // console.log(users.length);
+
   for (item of users) {
     const tankBody = [];
-    rotate(tankBody, item.x, item.y, item.direction);
+    item.alive === ALIVE
+      ? rotate(tankBody, item.x, item.y, item.direction)
+      : breakState(tankBody, item.x, item.y);
+
     const who = item.socketID === socket.id ? ME : OTHER;
     drawTank(gameBoard, tankBody, who, item.team, item.userName);
   }
 
   // let healthTxt = "Health " + TANK_HEALTH;
-
   // healthBoard.innerHTML = healthTxt;
 };
 
@@ -171,6 +203,14 @@ const rotate = (tankBody, _x, _y, _dir) => {
     tankBody[5] = { x: _x + 1, y: _y };
     tankBody[6] = { x: _x - 1, y: _y - 1 };
   }
+};
+
+const breakState = (tankBody, _x, _y) => {
+  tankBody[0] = { x: _x - 1, y: _y - 1 };
+  tankBody[1] = { x: _x - 1, y: _y + 1 };
+  tankBody[2] = { x: _x, y: _y };
+  tankBody[3] = { x: _x + 1, y: _y - 1 };
+  tankBody[4] = { x: _x + 1, y: _y + 1 };
 };
 
 const handleSet = (event) => {
