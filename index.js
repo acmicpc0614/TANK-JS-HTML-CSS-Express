@@ -30,6 +30,8 @@ let users = [];
 let stack = [];
 
 /*********TANK Setting*************/
+BOARD_SIZE = 151;
+
 const UP = "UP";
 const DOWN = "DOWN";
 const LEFT = "LEFT";
@@ -41,11 +43,10 @@ const TANK_LEVEL = 0;
 let TANK_HEALTH = 100 + Math.min(para[TANK_LEVEL] * 2, 50);
 
 /*********Shot Setting*************/
-let SHOT_CYCLE = Math.floor(50 - TANK_LEVEL * 2);
+let SHOT_CYCLE = Math.floor(65 - TANK_LEVEL * 2);
 const BULLET_DAMAGE = 40;
-const BULLET_LIFE = 100 + Math.floor(100 / para[TANK_LEVEL]);
+const BULLET_LIFE = 100;
 const BULLET_SPEED = 5;
-BOARD_SIZE = 400;
 
 const getStartPoint = (BOARD_SIZE) => {
   let tmpx = (Math.floor(Date.now() * Math.random()) % (BOARD_SIZE - 30)) + 10;
@@ -73,7 +74,7 @@ const makeBullet = (item) => {
     y: item.y,
     direction: item.direction,
     team: item.team,
-    // life: BULLET_LIFE,
+    life: BULLET_LIFE,
     // damage: BULLET_DAMAGE,
   };
   stack.push(bullet);
@@ -85,15 +86,18 @@ const updateStack = () => {
   }
   stack = stack.filter(
     (item) =>
-      // item.life > 0 &&
-      item.x <= BOARD_SIZE && item.y <= BOARD_SIZE && item.x >= 0 && item.y >= 0
+      item.life > 0 &&
+      item.x <= BOARD_SIZE &&
+      item.y <= BOARD_SIZE &&
+      item.x >= 0 &&
+      item.y >= 0
   );
 };
 const bulletMove = (item) => {
-  if (item.direction === UP) item.y -= 2;
-  if (item.direction === DOWN) item.y += 2;
-  if (item.direction === LEFT) item.x -= 2;
-  if (item.direction === RIGHT) item.x += 2;
+  if (item.direction === UP) item.y -= 1;
+  if (item.direction === DOWN) item.y += 1;
+  if (item.direction === LEFT) item.x -= 1;
+  if (item.direction === RIGHT) item.x += 1;
   item.life -= 1;
 };
 
@@ -102,25 +106,28 @@ const tankMove = (item) => {
   if (item.direction === DOWN) item.y += 1;
   if (item.direction === LEFT) item.x -= 1;
   if (item.direction === RIGHT) item.x += 1;
+  return item;
 };
 
 const setInputDir = (item) => {
-  if (item.x < 3 && item.direction === LEFT) return;
-  if (item.x > BOARD_SIZE - 3 && item.direction === RIGHT) return;
-  if (item.y < 3 && item.direction === UP) return;
-  if (item.y > BOARD_SIZE - 3 && item.direction === DOWN) return;
+  if (item.x < 3 && item.direction === LEFT) return item;
+  if (item.x > BOARD_SIZE - 3 && item.direction === RIGHT) return item;
+  if (item.y < 3 && item.direction === UP) return item;
+  if (item.y > BOARD_SIZE - 3 && item.direction === DOWN) return item;
 
-  tankMove(item);
+  return tankMove(item);
 };
+
+const checkCrash = () => {};
 
 const mainLoop = () => {
   updateUser();
   updateStack();
+  checkCrash();
 };
 
 const updateUser = () => {
   for (item of users) {
-    setInputDir(item);
     shut(item);
   }
 };
@@ -168,6 +175,12 @@ socketIO.on("connect", (socket) => {
       item.socketID === data.socketID
         ? { ...item, direction: data.direction }
         : item
+    );
+  });
+
+  socket.on("forward", (data) => {
+    users = users.map((item) =>
+      item.socketID === data.socketID ? setInputDir(item) : item
     );
   });
 });

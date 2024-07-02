@@ -25,6 +25,8 @@ socket.on("newUserResponse", (newUser) => {
 socket.on("stateOfUsers", (data) => {
   users = data.users;
   stack = data.stack;
+
+  for (item of users) if (item.socketID === socket.id) init(item);
   draw();
 });
 
@@ -50,7 +52,7 @@ let BULLET_LIFE;
 let BULLET_DAMAGE;
 
 const init = (newUser) => {
-  console.log("initializing");
+  // console.log("initializing");
 
   TANK_DIR = newUser.direction;
   level = newUser.TANK_LEVEL;
@@ -139,7 +141,9 @@ const setDirection = (direction) => {
     socketID: socket.id,
     direction: direction,
   };
-  socket.emit("changeDirection", data);
+  if (TANK_DIR === direction) {
+    socket.emit("forward", data);
+  } else socket.emit("changeDirection", data);
 };
 
 const drawTank = (gmaeBoard, tankBody, who) => {

@@ -13,8 +13,8 @@ body {
   width: 100vmin;
   height: 100vmin;
   display: grid;
-  grid-template-rows: repeat(400, 1fr);
-  grid-template-columns: repeat(400, 1fr);
+  grid-template-rows: repeat(151, 1fr);
+  grid-template-columns: repeat(151, 1fr);
 }
 
 .tank {
