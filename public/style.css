@@ -5,7 +5,7 @@ body {
   justify-content: center;
   align-items: center;
   margin: 0;
-  background-color: gray;
+  background-color: black;
 }
 
 #game-board {
@@ -13,13 +13,21 @@ body {
   width: 100vmin;
   height: 100vmin;
   display: grid;
-  grid-template-rows: repeat(151, 1fr);
-  grid-template-columns: repeat(151, 1fr);
+  grid-template-rows: repeat(111, 1fr);
+  grid-template-columns: repeat(111, 1fr);
+  border-left: 3px solid #eeeeee;
+  border-right: 3px solid #eeeeee;
 }
 
 .tank {
   background-color: rgb(255, 0, 0);
-  border: 1px solid rgb(55, 0, 255);
+  border: 1px solid rgb(255, 78, 175);
+
+}
+
+.tank2 {
+  background-color: rgb(0, 0, 255);
+  border: 1px solid rgb(182, 162, 255);
 }
 
 .tank-me {
@@ -27,13 +35,85 @@ body {
   border: 1px solid rgb(255, 255, 255);
 }
 
+.team-check {
+  color: #eeeeee;
+  font-size: 22px;
+  margin-bottom: 10px;
+  display: flex;
+  flex-direction: row;
+  gap: 20px;
+}
 
+.team-select:hover {
+  scale: 1.2;
+  cursor: pointer;
+}
+
+.selectedTeam {
+  scale: 1.2;
+  color: #5bdf4a;
+}
+.noneTeam {
+  scale: 1;
+  color: #eeeeee;
+}
 .food {
-  background-color: rgb(255, 255, 255);
-  border: 0.25vmin solid gray;
+  background-color: rgb(255, 97, 97);
+  border-radius: 50%;
+  /* border: 0.25vmin solid gray; */
+}
+.food2 {
+  background-color: rgb(61, 61, 192);;
+  border-radius: 50%;
+  /* border: 0.25vmin solid gray; */
 }
 
 .bullet {
   background-color: rgb(255, 255, 255);
   border: 0.25vmin solid rgb(55, 0, 255);
+}
+
+#score {
+  margin-bottom: 300px;
+  font-size: 40px;
+  color: #fff;
+  border-radius: 0.5rem;
+  border-bottom: 1px  solid #eeeeee;
+  text-align: center;
+}
+
+#register {
+  margin: 3rem;
+  align-items: center;
+  justify-content: center;
+}
+.registerBtn {
+  background-color: black;
+  color: #eeeeee;
+  border-radius: 0.5rem;
+  border: 1px  solid #eeeeee;
+  width: 120px;
+  height: 50px;
+  font-size: 22px;
+  margin-top: 10px;
+}
+.registerBtn:hover {
+  cursor: pointer;
+  background-color: #292929;
+}
+
+#name {
+  font-size: 22px;
+  width: 120px;
+  height: 50px;
+  border-radius: 0.5rem;
+  background-color: black;
+  color: #eeeeee;
+  border-bottom: 1px  solid #eeeeee;
+  text-align: center;
+}
+.tankname{
+  color: #fff;
+  z-index: 10;
+  font-size: 10px;
 }

@@ -16,8 +16,16 @@
   <body>
       
     <div id="register">
+      <div id="score" ></div>
+
+      <div class="team-check">
+
+        <div for="t1" id="t1" onclick=handleTeam1() class="team-select">Team 1</div>
+
+        <div for="t2" id="t2" onclick=handleTeam2() class="team-select">Team 2</div>
+      </div>
       <input id="name"/>
-      <button onclick=sendMessage()>start</button>
+      <button onclick=sendMessage() class="registerBtn">start</button>
     </div>
       <!-- <div id="health-bar"></div> -->
     <div id="game-board"></div>

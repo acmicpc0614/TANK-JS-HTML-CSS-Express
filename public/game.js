@@ -3,7 +3,7 @@ const healthBoard = document.getElementById("health-bar");
 
 /*********GAME Setting*************/
 let gameOver = false;
-const FLAME = Math.floor(1000 / 20); // every 50ms render
+const FLAME = 1000; // every 50ms render
 const BOARD_SIZE = 180;
 let users = [];
 let stack = [];
@@ -11,6 +11,9 @@ const ME = "ME";
 const OTHER = "OTHER";
 const ALIVE = "ALIVE";
 const DEATH = "DEATH";
+const TEAM1 = "TEAM1";
+const TEAM2 = "TEAM2";
+let myTeam = "";
 
 /*********Transfer*************/
 
@@ -32,13 +35,42 @@ socket.on("stateOfUsers", (data) => {
   draw();
 });
 
+const handleTeam1 = () => {
+  const team1 = document.getElementById("t1");
+  team1.classList.remove("noneTeam");
+  team1.classList.add("selectedTeam");
+
+  const team2 = document.getElementById("t2");
+  team2.classList.remove("selectedTeam");
+  team2.classList.add("noneTeam");
+  myTeam = TEAM1;
+  // console.log("Team 1 selected");
+};
+
+const handleTeam2 = () => {
+  const team1 = document.getElementById("t1");
+  team1.classList.remove("selectedTeam");
+  team1.classList.add("noneTeam");
+
+  const team2 = document.getElementById("t2");
+  team2.classList.remove("noneTeam");
+  team2.classList.add("selectedTeam");
+  myTeam = TEAM2;
+  // console.log("Team 2 selected");
+};
+
 const sendMessage = () => {
   const input = document.getElementById("name");
   const data = {
     userName: input.value,
     socketID: socket.id,
+    team: myTeam,
   };
-  socket.emit("newUser", data);
+  if (data.userName.trim() && data.team.trim()) {
+    socket.emit("newUser", data);
+  } else {
+    alert("Input data.");
+  }
 };
 
 /*********TANK Setting*************/
@@ -62,12 +94,22 @@ const init = (newUser) => {
   BULLET_LIFE = newUser.BULLET_LIFE;
   BULLET_DAMAGE = newUser.BULLET_DAMAGE;
   SHOT_TIME = newUser.SHOT_TIME;
-  let gameLoop = setInterval(main, FLAME + 1000);
+  let gameLoop = setInterval(main, FLAME);
+
+  inputScore(newUser);
 };
 
 /*********  ACTION  *************/
 const main = () => {
   getInputData();
+};
+
+const inputScore = (newUser) => {
+  let score = document.getElementById("score");
+  score.innerHTML = "";
+  let kills = document.createElement("h1");
+  kills.innerHTML = newUser.kill;
+  score.appendChild(kills);
 };
 
 const getInputData = () => {
@@ -82,7 +124,7 @@ const draw = () => {
     const tankBody = [];
     rotate(tankBody, item.x, item.y, item.direction);
     const who = item.socketID === socket.id ? ME : OTHER;
-    drawTank(gameBoard, tankBody, who);
+    drawTank(gameBoard, tankBody, who, item.team, item.userName);
   }
 
   // let healthTxt = "Health " + TANK_HEALTH;
@@ -147,7 +189,7 @@ const setDirection = (direction) => {
   } else socket.emit("changeDirection", data);
 };
 
-const drawTank = (gmaeBoard, tankBody, who) => {
+const drawTank = (gmaeBoard, tankBody, who, team, name) => {
   for (segment of tankBody) {
     // const segment = tankBody[i];
 
@@ -156,17 +198,22 @@ const drawTank = (gmaeBoard, tankBody, who) => {
     tankElement.style.gridColumnStart = segment.x;
     who === ME
       ? tankElement.classList.add("tank-me")
-      : tankElement.classList.add("tank");
+      : team === TEAM1
+      ? tankElement.classList.add("tank")
+      : tankElement.classList.add("tank2");
     gmaeBoard.appendChild(tankElement);
   }
 };
 
 const drawBullet = (gameboard, stack) => {
+  // console.log(stack);
   for (segment of stack) {
     const bulletElement = document.createElement("div");
     bulletElement.style.gridRowStart = segment.y;
     bulletElement.style.gridColumnStart = segment.x;
-    bulletElement.classList.add("food");
+    segment.team === TEAM1
+      ? bulletElement.classList.add("food")
+      : bulletElement.classList.add("food2");
     gameboard.appendChild(bulletElement);
   }
 };
