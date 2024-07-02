@@ -61,8 +61,9 @@ let TANK_HEALTH = 100 + Math.min(para[TANK_LEVEL] * 2, 50);
 
 const SHOT_CYCLE = 20;
 const BULLET_DAMAGE = 40;
-const BULLET_LIFE = 70;
+const BULLET_LIFE = 40;
 const BULLET_SPEED = 5;
+const CREAT_TIME = FRAME * 3; // 2 sec defense
 
 /*********default Setting******* ******/
 
@@ -183,9 +184,11 @@ const checkCrash = () => {
               ? { ...item, kill: item.kill + 1 }
               : item
           );
-          item.alive = BREAK;
-          if (bullet.team === TEAM1) T1S += 1;
-          else T2S += 1;
+          if (item.defensetime === 0) {
+            item.alive = BREAK;
+            if (bullet.team === TEAM1) T1S += 1;
+            else T2S += 1;
+          }
         }
       }
     }
@@ -207,6 +210,9 @@ const mainLoop = () => {
 const updateUser = () => {
   users = users.map((item) =>
     item.alive === BREAK ? { ...item, alive: DEATH } : item
+  );
+  users = users.map((item) =>
+    item.defensetime > 0 ? { ...item, defensetime: item.defensetime - 1 } : item
   );
   for (item of users) {
     shut(item);
@@ -260,6 +266,7 @@ socketIO.on("connect", (socket) => {
 
       shotCycle: SHOT_CYCLE,
       shottime: 0,
+      defensetime: CREAT_TIME,
       BULLET_LIFE: BULLET_LIFE,
     };
     if (isExist(newUser.socketID)) {

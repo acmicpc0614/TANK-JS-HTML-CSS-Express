@@ -229,13 +229,14 @@ const setDirection = (direction) => {
   } else socket.emit("changeDirection", data);
 };
 
-const drawTank = (gmaeBoard, tankBody, who, team, name) => {
+const drawTank = (gmaeBoard, tankBody, who, team) => {
+  // for (let i = 0; i <= tankBody.length; i++) {
+  //   const segment = tankBody[i];
   for (segment of tankBody) {
-    // const segment = tankBody[i];
-
     const tankElement = document.createElement("div");
     tankElement.style.gridRowStart = segment.y;
     tankElement.style.gridColumnStart = segment.x;
+    // who === ME && i !== 3
     who === ME
       ? tankElement.classList.add("tank-me")
       : team === TEAM1
