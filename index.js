@@ -3,6 +3,7 @@ const express = require("express");
 const server = express();
 
 const cors = require("cors");
+const { DefaultSerializer } = require("v8");
 const server_http = require("http").Server(server);
 const PORT = 8800;
 const socketIO = require("socket.io")(server_http, {
@@ -30,29 +31,38 @@ let users = [];
 let stack = [];
 
 /*********TANK Setting*************/
-BOARD_SIZE = 151;
+
+const BOARD_SIZE = 151;
+const TIMEperS = 20;
+const FRAME = Math.floor(1000 / TIMEperS); // every 50ms render
 
 const UP = "UP";
 const DOWN = "DOWN";
 const LEFT = "LEFT";
 const RIGHT = "RIGHT";
-let TANK_DIR = DOWN;
+const ALIVE = "ALIVE";
+const DEATH = "DEATH";
+
 const para = [0, 10, 23, 30];
 const TANK_SPEED = 5;
 const TANK_LEVEL = 0;
 let TANK_HEALTH = 100 + Math.min(para[TANK_LEVEL] * 2, 50);
 
 /*********Shot Setting*************/
+
 let SHOT_CYCLE = Math.floor(65 - TANK_LEVEL * 2);
 const BULLET_DAMAGE = 40;
 const BULLET_LIFE = 100;
 const BULLET_SPEED = 5;
+
+/*********default Setting*************/
 
 const getStartPoint = (BOARD_SIZE) => {
   let tmpx = (Math.floor(Date.now() * Math.random()) % (BOARD_SIZE - 30)) + 10;
   let tmpy = (Math.floor(Date.now() * Math.random()) % (BOARD_SIZE - 30)) + 10;
   return { x: tmpx, y: tmpy };
 };
+
 const getStartDirection = () => {
   let tmp = Math.floor(Date.now() * Math.random()) % 4;
   if (tmp === 0) return UP;
@@ -75,6 +85,7 @@ const makeBullet = (item) => {
     direction: item.direction,
     team: item.team,
     life: BULLET_LIFE,
+    socketID: item.socketID,
     // damage: BULLET_DAMAGE,
   };
   stack.push(bullet);
@@ -118,7 +129,35 @@ const setInputDir = (item) => {
   return tankMove(item);
 };
 
-const checkCrash = () => {};
+const isCrach = (bullet, tank) => {
+  if (bullet.socketID === tank.socketID) return false;
+  if (Math.abs(bullet.x - tank.x) <= 1 && Math.abs(bullet.y - tank.y) <= 1)
+    return true;
+  else return false;
+};
+const isCrashWithBullet = (but1, but2) => {
+  if (but1.socketID === but2.socketID) return false;
+  if (but1.x === but2.x && but1.y === but2.y) return true;
+  return false;
+};
+
+const checkCrash = () => {
+  for (bullet of stack) {
+    for (item of users) {
+      const tank = { x: item.x, y: item.y };
+      if (isCrach(bullet, item)) {
+        bullet.life = 0;
+        item.alive = DEATH;
+      }
+    }
+    for (bullet2 of stack) {
+      if (isCrashWithBullet(bullet, bullet2)) {
+        bullet.life = 0;
+        bullet.life2 = 0;
+      }
+    }
+  }
+};
 
 const mainLoop = () => {
   updateUser();
@@ -130,6 +169,14 @@ const updateUser = () => {
   for (item of users) {
     shut(item);
   }
+};
+
+const isExist = (id) => {
+  let tmp = true;
+  for (item of users) {
+    if (item.socketID === id) tmp = false;
+  }
+  return tmp;
 };
 
 /*****************SOCKET**********************/
@@ -146,6 +193,7 @@ socketIO.on("connect", (socket) => {
       kill: 0,
       death: 0,
       health: TANK_HEALTH,
+      alive: ALIVE,
 
       direction: getStartDirection(),
       x: getStartPoint(BOARD_SIZE).x,
@@ -155,16 +203,22 @@ socketIO.on("connect", (socket) => {
       shottime: 0,
       BULLET_LIFE: BULLET_LIFE,
     };
-    users.push(newUser);
-    console.log(newUser.userName, " is connected in Team ", newUser.team);
-    socketIO.emit("newUserResponse", newUser);
+    if (isExist(newUser.socketID)) {
+      users.push(newUser);
+      console.log(newUser.userName, " is connected in Team ", newUser.team);
+      socketIO.emit("newUserResponse", newUser);
+    }
   });
 
   let boradCast = setInterval(() => {
     mainLoop();
-    const data = { users: users, stack: stack };
+    users = users.filter((item) => item.alive === ALIVE);
+    const data = {
+      users: users,
+      stack: stack,
+    };
     socketIO.emit("stateOfUsers", data);
-  }, 50);
+  }, FRAME);
 
   socket.on("test", () => {
     console.log("working now");

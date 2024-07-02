@@ -9,6 +9,8 @@ let users = [];
 let stack = [];
 const ME = "ME";
 const OTHER = "OTHER";
+const ALIVE = "ALIVE";
+const DEATH = "DEATH";
 
 /*********Transfer*************/
 
@@ -60,7 +62,6 @@ const init = (newUser) => {
   BULLET_LIFE = newUser.BULLET_LIFE;
   BULLET_DAMAGE = newUser.BULLET_DAMAGE;
   SHOT_TIME = newUser.SHOT_TIME;
-
   let gameLoop = setInterval(main, FLAME + 1000);
 };
 
@@ -149,6 +150,7 @@ const setDirection = (direction) => {
 const drawTank = (gmaeBoard, tankBody, who) => {
   for (segment of tankBody) {
     // const segment = tankBody[i];
+
     const tankElement = document.createElement("div");
     tankElement.style.gridRowStart = segment.y;
     tankElement.style.gridColumnStart = segment.x;
