@@ -1,11 +1,7 @@
 const express = require("express");
-
 const server = express();
-
 const cors = require("cors");
-const { DefaultSerializer } = require("v8");
-const { kill } = require("process");
-const { dir } = require("console");
+
 const server_http = require("http").Server(server);
 const PORT = 8800;
 const socketIO = require("socket.io")(server_http, {
@@ -20,11 +16,12 @@ server_http.listen(PORT, () => {
   console.log(`Server listening on ${PORT}`);
 });
 
+/********* C L I E N T *************/
 const client = express();
-// client.use("/public/index.html", express.static("public"));
 client.use(express.static("public"));
 const client_http = require("http").Server(client);
 const F_PORT = 3333;
+
 client.get("/", (req, res) => {
   res.send("client is running");
 });
@@ -38,7 +35,7 @@ let T2S = 0;
 
 const BOARD_SIZE = 111;
 const TIMEperS = 50;
-const FRAME = Math.floor(1000 / TIMEperS); // every 50ms render
+const FRAME = Math.floor(1000 / TIMEperS); // every 20ms render
 
 const UP = "UP";
 const DOWN = "DOWN";
@@ -55,17 +52,17 @@ const TEAM2 = "TEAM2";
 const para = [0, 10, 23, 30];
 const TANK_SPEED = 5;
 const TANK_LEVEL = 0;
-let TANK_HEALTH = 100 + Math.min(para[TANK_LEVEL] * 2, 50);
+const TANK_HEALTH = 100;
 
-/*********Shot Setting*************/
+/*********Shut Setting*************/
 
-const SHOT_CYCLE = 20;
+const SHOT_CYCLE = FRAME; // every 1 sec shut
 const BULLET_DAMAGE = 40;
-const BULLET_LIFE = 40;
+const BULLET_LIFE = FRAME * 2; // 2 sec life
 const BULLET_SPEED = 5;
-const CREAT_TIME = FRAME * 3; // 2 sec defense
+const CREAT_TIME = FRAME * 3; // 3 sec defense
 
-/*********default Setting******* ******/
+/********* default Setting *************/
 
 const getStartPoint = (BOARD_SIZE) => {
   let tmpx = (Math.floor(Date.now() * Math.random()) % (BOARD_SIZE - 30)) + 10;
@@ -80,6 +77,8 @@ const getStartDirection = () => {
   if (tmp === 2) return LEFT;
   if (tmp === 3) return RIGHT;
 };
+
+/********* shut Code *************/
 
 const shut = (item) => {
   if (item.shottime === 0) {
@@ -117,6 +116,7 @@ const updateStack = () => {
   stack = [];
   stack = tmp;
 };
+
 const bulletMove = (item) => {
   if (item.direction === UP) item.y -= 2;
   if (item.direction === DOWN) item.y += 2;
@@ -125,12 +125,13 @@ const bulletMove = (item) => {
   item.life -= 1;
 };
 
+/********* Tank Action *************/
+
 const tankMove = (item) => {
   if (item.direction === UP) item.y -= 1;
   if (item.direction === DOWN) item.y += 1;
   if (item.direction === LEFT) item.x -= 1;
   if (item.direction === RIGHT) item.x += 1;
-
   return item;
 };
 
@@ -165,6 +166,7 @@ const isCrach = (bullet, tank) => {
     return true;
   else return false;
 };
+
 const isCrashWithBullet = (but1, but2) => {
   if (but1.socketID === but2.socketID) return false;
   if (but1.x === but2.x && but1.y === but2.y) return true;
@@ -174,11 +176,12 @@ const isCrashWithBullet = (but1, but2) => {
 const checkCrash = () => {
   for (bullet of stack) {
     for (item of users) {
+      // crash between Tank & bullet
       const tank = { x: item.x, y: item.y };
       if (isCrach(bullet, item)) {
         bullet.life = 0;
-        // increateKill(bullet);
         if (bullet.team !== item.team) {
+          // Error ?
           users = users.map((item) =>
             item.socketID === bullet.socketID
               ? { ...item, kill: item.kill + 1 }
@@ -193,6 +196,7 @@ const checkCrash = () => {
       }
     }
     for (bullet2 of stack) {
+      // crash between bullet & bullet
       if (isCrashWithBullet(bullet, bullet2)) {
         bullet.life = 0;
         bullet.life2 = 0;
@@ -208,9 +212,11 @@ const mainLoop = () => {
 };
 
 const updateUser = () => {
+  // tank is broken, change it to DEATH
   users = users.map((item) =>
     item.alive === BREAK ? { ...item, alive: DEATH } : item
   );
+  // if tank is defenseTime, decrease defenseTime
   users = users.map((item) =>
     item.defensetime > 0 ? { ...item, defensetime: item.defensetime - 1 } : item
   );
@@ -220,7 +226,7 @@ const updateUser = () => {
 };
 
 const isExist = (id) => {
-  let tmp = true;
+  let tmp = true; // if there is no same user, return true
   for (item of users) {
     if (item.socketID === id) tmp = false;
   }
@@ -239,39 +245,39 @@ let broadcast = setInterval(() => {
   socketIO.emit("stateOfUsers", data);
 }, FRAME);
 
-// const handleChange = (item, data) => {
-//   item = { ...item, direction: data.direction };
-//   tankMove(item);
-// };
+const createUser = (data) => {
+  return {
+    userName: data.userName,
+    team: data.team || 1,
+    socketID: data.socketID,
+
+    level: TANK_LEVEL,
+    kill: 0,
+    death: 0,
+    health: TANK_HEALTH,
+    alive: ALIVE,
+
+    direction: getStartDirection(),
+    x: getStartPoint(BOARD_SIZE).x,
+    y: getStartPoint(BOARD_SIZE).y,
+
+    shotCycle: SHOT_CYCLE,
+    shottime: 0,
+    defensetime: CREAT_TIME,
+    BULLET_LIFE: BULLET_LIFE,
+  };
+};
 
 /*****************SOCKET**********************/
 socketIO.on("connect", (socket) => {
   console.log("connected with client");
 
   socket.on("newUser", (data) => {
-    let newUser = {
-      userName: data.userName,
-      team: data.team || 1,
-
-      socketID: data.socketID,
-      level: TANK_LEVEL,
-      kill: 0,
-      death: 0,
-      health: TANK_HEALTH,
-      alive: ALIVE,
-
-      direction: getStartDirection(),
-      x: getStartPoint(BOARD_SIZE).x,
-      y: getStartPoint(BOARD_SIZE).y,
-
-      shotCycle: SHOT_CYCLE,
-      shottime: 0,
-      defensetime: CREAT_TIME,
-      BULLET_LIFE: BULLET_LIFE,
-    };
     if (isExist(newUser.socketID)) {
+      let newUser = createUser(data);
       users.push(newUser);
       console.log(newUser.userName, " is connected in Team ", newUser.team);
+      console.log("There are ", users.length, " users...");
       socketIO.emit("newUserResponse", newUser);
     }
   });

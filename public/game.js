@@ -3,10 +3,8 @@ const healthBoard = document.getElementById("health-bar");
 
 /*********GAME Setting*************/
 let gameOver = false;
-const FLAME = 1000; // every 50ms render
-const BOARD_SIZE = 180;
-let users = [];
-let stack = [];
+const FLAME = 1000;
+
 const ME = "ME";
 const OTHER = "OTHER";
 
@@ -17,8 +15,15 @@ const DEATH = "DEATH";
 const TEAM1 = "TEAM1";
 const TEAM2 = "TEAM2";
 
-let myTeam = "";
+const UP = "UP";
+const DOWN = "DOWN";
+const LEFT = "LEFT";
+const RIGHT = "RIGHT";
 
+let myTeam = "";
+let TANK_DIR;
+let users = [];
+let stack = [];
 let T1S = 0;
 let T2S = 0;
 
@@ -43,6 +48,7 @@ socket.on("stateOfUsers", (data) => {
   draw();
 });
 
+/*********login*************/
 const handleTeam1 = () => {
   const team1 = document.getElementById("t1");
   team1.classList.remove("noneTeam");
@@ -52,7 +58,6 @@ const handleTeam1 = () => {
   team2.classList.remove("selectedTeam");
   team2.classList.add("noneTeam");
   myTeam = TEAM1;
-  // console.log("Team 1 selected");
 };
 
 const handleTeam2 = () => {
@@ -64,7 +69,6 @@ const handleTeam2 = () => {
   team2.classList.remove("noneTeam");
   team2.classList.add("selectedTeam");
   myTeam = TEAM2;
-  // console.log("Team 2 selected");
 };
 
 const sendMessage = () => {
@@ -77,31 +81,15 @@ const sendMessage = () => {
   if (data.userName.trim() && data.team.trim()) {
     socket.emit("newUser", data);
   } else {
-    alert("Input data.");
+    if (!data.team.trim()) alert("select your team.");
+    else alert("Input user name.");
   }
 };
 
 /*********TANK Setting*************/
-const UP = "UP";
-const DOWN = "DOWN";
-const LEFT = "LEFT";
-const RIGHT = "RIGHT";
-let TANK_DIR;
-let level;
-let SHOT_CYCLE;
-let SHOT_TIME;
-let BULLET_LIFE;
-let BULLET_DAMAGE;
 
 const init = (newUser) => {
-  // console.log("initializing");
-
   TANK_DIR = newUser.direction;
-  level = newUser.TANK_LEVEL;
-  SHOT_CYCLE = newUser.SHOT_CYCLE;
-  BULLET_LIFE = newUser.BULLET_LIFE;
-  BULLET_DAMAGE = newUser.BULLET_DAMAGE;
-  SHOT_TIME = newUser.SHOT_TIME;
   let gameLoop = setInterval(main, FLAME);
 
   inputScore(newUser);
@@ -122,23 +110,22 @@ const inputScore = (newUser) => {
 };
 
 const inputTeamScore = () => {
-  let t1Txt = document.getElementById("t1-txt");
+  let t1Txt = document.getElementById("t1-txt"); // score of Team 1
   t1Txt.innerHTML = "";
   let kills1 = document.createElement("h1");
   kills1.innerHTML = T1S;
   t1Txt.appendChild(kills1);
 
-  let t2Txt = document.getElementById("t2-txt");
+  let t2Txt = document.getElementById("t2-txt"); // score of Team 2
   t2Txt.innerHTML = "";
   let kills2 = document.createElement("h1");
   kills2.innerHTML = T2S;
   t2Txt.appendChild(kills2);
 
-  let vs = document.getElementById("vs");
+  let vs = document.getElementById("vs"); // vs text :
   vs.innerHTML = "";
   let txt = document.createElement("h1");
   txt.innerHTML = ":";
-
   vs.appendChild(txt);
 };
 
@@ -153,15 +140,12 @@ const draw = () => {
   for (item of users) {
     const tankBody = [];
     item.alive === ALIVE
-      ? rotate(tankBody, item.x, item.y, item.direction)
-      : breakState(tankBody, item.x, item.y);
+      ? staticStateTank(tankBody, item.x, item.y, item.direction)
+      : breakStateTank(tankBody, item.x, item.y);
 
     const who = item.socketID === socket.id ? ME : OTHER;
     drawTank(gameBoard, tankBody, who, item.team, item.userName);
   }
-
-  // let healthTxt = "Health " + TANK_HEALTH;
-  // healthBoard.innerHTML = healthTxt;
 };
 
 const isGameOver = () => {
@@ -169,7 +153,7 @@ const isGameOver = () => {
   // return tankIntersectSelf();
 };
 
-const rotate = (tankBody, _x, _y, _dir) => {
+const staticStateTank = (tankBody, _x, _y, _dir) => {
   if (_dir === UP) {
     tankBody[0] = { x: _x - 1, y: _y };
     tankBody[1] = { x: _x - 1, y: _y + 1 };
@@ -205,7 +189,7 @@ const rotate = (tankBody, _x, _y, _dir) => {
   }
 };
 
-const breakState = (tankBody, _x, _y) => {
+const breakStateTank = (tankBody, _x, _y) => {
   tankBody[0] = { x: _x - 1, y: _y - 1 };
   tankBody[1] = { x: _x - 1, y: _y + 1 };
   tankBody[2] = { x: _x, y: _y };
@@ -230,13 +214,10 @@ const setDirection = (direction) => {
 };
 
 const drawTank = (gmaeBoard, tankBody, who, team) => {
-  // for (let i = 0; i <= tankBody.length; i++) {
-  //   const segment = tankBody[i];
   for (segment of tankBody) {
     const tankElement = document.createElement("div");
     tankElement.style.gridRowStart = segment.y;
     tankElement.style.gridColumnStart = segment.x;
-    // who === ME && i !== 3
     who === ME
       ? tankElement.classList.add("tank-me")
       : team === TEAM1
@@ -247,7 +228,6 @@ const drawTank = (gmaeBoard, tankBody, who, team) => {
 };
 
 const drawBullet = (gameboard, stack) => {
-  // console.log(stack);
   for (segment of stack) {
     const bulletElement = document.createElement("div");
     bulletElement.style.gridRowStart = segment.y;
