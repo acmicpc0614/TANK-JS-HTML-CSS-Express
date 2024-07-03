@@ -26,6 +26,9 @@ let users = [];
 let stack = [];
 let T1S = 0;
 let T2S = 0;
+let level;
+let health;
+let damage;
 
 /*********Transfer*************/
 
@@ -41,6 +44,7 @@ socket.on("newUserResponse", (newUser) => {
 
 socket.on("stateOfUsers", (data) => {
   users = data.users;
+  // console.log(users);
   stack = data.stack;
   T1S = data.T1S;
   T2S = data.T2S;
@@ -90,9 +94,14 @@ const sendMessage = () => {
 
 const init = (newUser) => {
   TANK_DIR = newUser.direction;
+  level = newUser.level;
+  health = newUser.health;
+  damage = newUser.damage;
+
   let gameLoop = setInterval(main, FLAME);
 
   inputScore(newUser);
+  inputState(level, health, damage);
   inputTeamScore();
 };
 
@@ -104,27 +113,53 @@ const main = () => {
 const inputScore = (newUser) => {
   let score = document.getElementById("score");
   score.innerHTML = "";
-  let kills = document.createElement("h1");
+  let kills = document.createElement("div");
   kills.innerHTML = newUser.kill;
   score.appendChild(kills);
+};
+
+const inputState = (level, health, damage) => {
+  let levelboard = document.getElementById("level-board");
+  levelboard.innerHTML = "";
+  let levels = document.createElement("div");
+  let str = level + 1 + " level";
+  levels.innerHTML = str;
+  levels.classList.add("tank-state");
+  levelboard.appendChild(levels);
+
+  let healthboard = document.getElementById("health-board");
+  healthboard.innerHTML = "";
+  let healths = document.createElement("div");
+  str = health + " health";
+  healths.innerHTML = str;
+  healths.classList.add("tank-state");
+  healthboard.appendChild(healths);
+
+  let damageboard = document.getElementById("damage-board");
+  damageboard.innerHTML = "";
+  let damages = document.createElement("div");
+  str = damage + " damage";
+  damages.innerHTML = str;
+  damages.classList.add("tank-state");
+  damageboard.appendChild(damages);
 };
 
 const inputTeamScore = () => {
   let t1Txt = document.getElementById("t1-txt"); // score of Team 1
   t1Txt.innerHTML = "";
-  let kills1 = document.createElement("h1");
+  let kills1 = document.createElement("div");
   kills1.innerHTML = T1S;
   t1Txt.appendChild(kills1);
 
   let t2Txt = document.getElementById("t2-txt"); // score of Team 2
   t2Txt.innerHTML = "";
-  let kills2 = document.createElement("h1");
+  let kills2 = document.createElement("div");
   kills2.innerHTML = T2S;
   t2Txt.appendChild(kills2);
 
   let vs = document.getElementById("vs"); // vs text :
   vs.innerHTML = "";
-  let txt = document.createElement("h1");
+  let txt = document.createElement("div");
   txt.innerHTML = ":";
   vs.appendChild(txt);
 };

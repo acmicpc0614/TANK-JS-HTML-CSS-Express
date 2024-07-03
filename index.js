@@ -42,6 +42,11 @@ const DOWN = "DOWN";
 const LEFT = "LEFT";
 const RIGHT = "RIGHT";
 
+const UL = "UL";
+const UR = "UR";
+const DL = "DL";
+const DR = "DR";
+
 const ALIVE = "ALIVE";
 const BREAK = "BREAK";
 const DEATH = "DEATH";
@@ -49,18 +54,26 @@ const DEATH = "DEATH";
 const TEAM1 = "TEAM1";
 const TEAM2 = "TEAM2";
 
-const para = [0, 10, 23, 30];
 const TANK_SPEED = 5;
 const TANK_LEVEL = 0;
+
 const TANK_HEALTH = 100;
+const BOUNS_HEALTH = [0, 50, 50, 100];
 
 /*********Shut Setting*************/
 
 const SHOT_CYCLE = FRAME; // every 1 sec shut
-const BULLET_DAMAGE = 40;
+const BONUS_SHOT_CYCLE = [0, -2, -4, -8]; // every 1 sec shut
+
 const BULLET_LIFE = FRAME * 2; // 2 sec life
+const BONUS_BULLET_LIFE = [0, 3, 6, 9]; // every 1 sec shut
+
 const BULLET_SPEED = 5;
 const CREAT_TIME = FRAME * 3; // 3 sec defense
+
+const BULLET_DAMAGE = 50;
+// const BOUNS_DAMAGE = [0, 10, 20, 50];
+const BOUNS_DAMAGE = [0, 0, 0, 0];
 
 /********* default Setting *************/
 
@@ -88,16 +101,94 @@ const shut = (item) => {
 };
 
 const makeBullet = (item) => {
-  const bullet = {
-    x: item.x,
-    y: item.y,
-    direction: item.direction,
-    team: item.team,
-    life: BULLET_LIFE,
-    socketID: item.socketID,
-    // damage: BULLET_DAMAGE,
-  };
-  stack.push(bullet);
+  if (item.level <= 1) {
+    // level 0, 1
+    const bullet = {
+      x: item.x,
+      y: item.y,
+      direction: item.direction,
+      team: item.team,
+      life: item.BULLET_LIFE,
+      socketID: item.socketID,
+      damage: item.damage,
+    };
+    stack.push(bullet);
+  } else {
+    // level 2, 3
+    let tmpx1 = item.x;
+    let tmpx2 = item.x;
+    let tmpy1 = item.y;
+    let tmpy2 = item.y;
+    if (xdelte(item.direction)) {
+      tmpy1 -= 1;
+      tmpy2 += 1;
+    } else {
+      tmpx1 -= 1;
+      tmpx2 += 1;
+    }
+    const bullet1 = {
+      x: tmpx1,
+      y: tmpy1,
+      direction: item.direction,
+      team: item.team,
+      life: item.BULLET_LIFE,
+      socketID: item.socketID,
+      damage: item.damage,
+    };
+    const bullet2 = {
+      x: tmpx2,
+      y: tmpy2,
+      direction: item.direction,
+      team: item.team,
+      life: item.BULLET_LIFE,
+      socketID: item.socketID,
+      damage: item.damage,
+    };
+    stack.push(bullet1);
+    stack.push(bullet2);
+
+    if (item.level > 2) {
+      let dir1;
+      let dir2;
+      if (item.direction === UP) {
+        dir1 = UR;
+        dir2 = UL;
+      }
+      if (item.direction === DOWN) {
+        dir1 = DR;
+        dir2 = DL;
+      }
+      if (item.direction === LEFT) {
+        dir1 = DL;
+        dir2 = UL;
+      }
+      if (item.direction === RIGHT) {
+        dir1 = UR;
+        dir2 = DR;
+      }
+
+      const bullet1 = {
+        x: tmpx1,
+        y: tmpy1,
+        direction: dir1,
+        team: item.team,
+        life: item.BULLET_LIFE,
+        socketID: item.socketID,
+        damage: item.damage,
+      };
+      const bullet2 = {
+        x: tmpx2,
+        y: tmpy2,
+        direction: dir2,
+        team: item.team,
+        life: item.BULLET_LIFE,
+        socketID: item.socketID,
+        damage: item.damage,
+      };
+      stack.push(bullet1);
+      stack.push(bullet2);
+    }
+  }
 };
 
 const updateStack = () => {
@@ -122,6 +213,23 @@ const bulletMove = (item) => {
   if (item.direction === DOWN) item.y += 2;
   if (item.direction === LEFT) item.x -= 2;
   if (item.direction === RIGHT) item.x += 2;
+  if (item.direction === UL) {
+    item.y -= 2;
+    item.x -= 2;
+  }
+  if (item.direction === UR) {
+    item.y -= 2;
+    item.x += 2;
+  }
+  if (item.direction === DL) {
+    item.y += 2;
+    item.x -= 2;
+  }
+  if (item.direction === DR) {
+    item.y += 2;
+    item.x += 2;
+  }
+
   item.life -= 1;
 };
 
@@ -177,20 +285,25 @@ const checkCrash = () => {
   for (bullet of stack) {
     for (item of users) {
       // crash between Tank & bullet
-      const tank = { x: item.x, y: item.y };
       if (isCrach(bullet, item)) {
-        bullet.life = 0;
+        bullet.life = 0; // remove bullet
         if (bullet.team !== item.team) {
-          // Error ?
-          users = users.map((item) =>
-            item.socketID === bullet.socketID
-              ? { ...item, kill: item.kill + 1 }
-              : item
-          );
           if (item.defensetime === 0) {
-            item.alive = BREAK;
-            if (bullet.team === TEAM1) T1S += 1;
-            else T2S += 1;
+            if (item.health - bullet.damage < 1) {
+              item.alive = BREAK;
+              users = users.map(
+                (
+                  user // user is who attach the item
+                ) =>
+                  user.socketID === bullet.socketID
+                    ? { ...user, kill: user.kill + 1 }
+                    : user
+              );
+              if (bullet.team === TEAM1) T1S += 1;
+              else T2S += 1;
+            } else {
+              item.health = item.health - bullet.damage;
+            }
           }
         }
       }
@@ -216,6 +329,8 @@ const updateUser = () => {
   users = users.map((item) =>
     item.alive === BREAK ? { ...item, alive: DEATH } : item
   );
+  // level update
+  users = users.map((item) => updateLevel(item));
   // if tank is defenseTime, decrease defenseTime
   users = users.map((item) =>
     item.defensetime > 0 ? { ...item, defensetime: item.defensetime - 1 } : item
@@ -223,6 +338,30 @@ const updateUser = () => {
   for (item of users) {
     shut(item);
   }
+};
+
+const updateLevel = (item) => {
+  if (item.kill >= 6 && item.level < 3) return updateTankWithBonus(item, 3);
+  else if (item.kill >= 4 && item.level < 2)
+    return updateTankWithBonus(item, 2);
+  else if (item.kill >= 2 && item.level < 1)
+    return updateTankWithBonus(item, 1);
+  else return item;
+};
+
+const updateTankWithBonus = (item, _level) => {
+  return {
+    ...item,
+    level: _level,
+    health: item.health - BOUNS_HEALTH[_level - 1] + BOUNS_HEALTH[_level],
+    shotCycle:
+      item.shotCycle - BONUS_SHOT_CYCLE[_level - 1] + BONUS_SHOT_CYCLE[_level],
+    BULLET_LIFE:
+      item.BULLET_LIFE -
+      BONUS_BULLET_LIFE[_level - 1] +
+      BONUS_BULLET_LIFE[_level],
+    damage: item.damage - BOUNS_DAMAGE[_level - 1] + BOUNS_DAMAGE[_level],
+  };
 };
 
 const isExist = (id) => {
@@ -251,7 +390,7 @@ const createUser = (data) => {
     team: data.team || 1,
     socketID: data.socketID,
 
-    level: TANK_LEVEL,
+    level: 0,
     kill: 0,
     death: 0,
     health: TANK_HEALTH,
@@ -265,6 +404,7 @@ const createUser = (data) => {
     shottime: 0,
     defensetime: CREAT_TIME,
     BULLET_LIFE: BULLET_LIFE,
+    damage: BULLET_DAMAGE,
   };
 };
 
@@ -273,8 +413,8 @@ socketIO.on("connect", (socket) => {
   console.log("connected with client");
 
   socket.on("newUser", (data) => {
+    let newUser = createUser(data);
     if (isExist(newUser.socketID)) {
-      let newUser = createUser(data);
       users.push(newUser);
       console.log(newUser.userName, " is connected in Team ", newUser.team);
       console.log("There are ", users.length, " users...");
@@ -287,6 +427,7 @@ socketIO.on("connect", (socket) => {
   });
 
   socket.on("changeDirection", (data) => {
+    // console.log("change ...");
     users = users.map((item) =>
       item.socketID === data.socketID
         ? {
@@ -300,6 +441,7 @@ socketIO.on("connect", (socket) => {
   });
 
   socket.on("forward", (data) => {
+    // console.log("forward ...");
     users = users.map((item) =>
       item.socketID === data.socketID ? setInputDir(item) : item
     );
