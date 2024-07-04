@@ -268,8 +268,8 @@ const drawBullet = (gameboard, stack) => {
     bulletElement.style.gridRowStart = segment.y;
     bulletElement.style.gridColumnStart = segment.x;
     segment.team === TEAM1
-      ? bulletElement.classList.add("food")
-      : bulletElement.classList.add("food2");
+      ? bulletElement.classList.add("team1")
+      : bulletElement.classList.add("team2");
     gameboard.appendChild(bulletElement);
   }
 };

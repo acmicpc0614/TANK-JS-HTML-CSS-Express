@@ -5,7 +5,7 @@ const cors = require("cors");
 const server_http = require("http").Server(server);
 const PORT = 8800;
 const socketIO = require("socket.io")(server_http, {
-  cors: "*",
+  cors: ["*"],
 });
 
 server.use(cors());
@@ -54,7 +54,7 @@ const DEATH = "DEATH";
 const TEAM1 = "TEAM1";
 const TEAM2 = "TEAM2";
 
-const TANK_SPEED = 5;
+const TANK_SPEED = 1;
 const TANK_LEVEL = 0;
 
 const TANK_HEALTH = 100;
@@ -68,7 +68,7 @@ const BONUS_SHOT_CYCLE = [0, -2, -4, -8]; // every 1 sec shut
 const BULLET_LIFE = FRAME * 2; // 2 sec life
 const BONUS_BULLET_LIFE = [0, 3, 6, 9]; // every 1 sec shut
 
-const BULLET_SPEED = 5;
+const BULLET_SPEED = 2;
 const CREAT_TIME = FRAME * 3; // 3 sec defense
 
 const BULLET_DAMAGE = 50;
@@ -77,9 +77,27 @@ const BOUNS_DAMAGE = [0, 0, 0, 0];
 
 /********* default Setting *************/
 
-const getStartPoint = (BOARD_SIZE) => {
-  let tmpx = (Math.floor(Date.now() * Math.random()) % (BOARD_SIZE - 30)) + 10;
-  let tmpy = (Math.floor(Date.now() * Math.random()) % (BOARD_SIZE - 30)) + 10;
+const getStartPoint = (BOARD_SIZE, team) => {
+  let tmpx, tmpy;
+  const HALF_BOARD_SIZE = Math.floor(BOARD_SIZE / 2) - 1;
+
+  /************************
+   * +----------------+
+   * |        |       |
+   * | TEAM1  | TEAM2 |
+   * |        |       |
+   * +----------------+
+   ***********************/
+  if (team === TEAM1)
+    tmpx =
+      (Math.floor(Date.now() * Math.random()) % (HALF_BOARD_SIZE - 20)) + 10;
+  else
+    tmpx =
+      (Math.floor(Date.now() * Math.random()) % (HALF_BOARD_SIZE - 20)) +
+      10 +
+      HALF_BOARD_SIZE;
+
+  tmpy = (Math.floor(Date.now() * Math.random()) % (BOARD_SIZE - 30)) + 10;
   return { x: tmpx, y: tmpy };
 };
 
@@ -103,16 +121,7 @@ const shut = (item) => {
 const makeBullet = (item) => {
   if (item.level <= 1) {
     // level 0, 1
-    const bullet = {
-      x: item.x,
-      y: item.y,
-      direction: item.direction,
-      team: item.team,
-      life: item.BULLET_LIFE,
-      socketID: item.socketID,
-      damage: item.damage,
-    };
-    stack.push(bullet);
+    stack.push(createBullet(item.x, item.y, item.direction, item));
   } else {
     // level 2, 3
     let tmpx1 = item.x;
@@ -126,26 +135,8 @@ const makeBullet = (item) => {
       tmpx1 -= 1;
       tmpx2 += 1;
     }
-    const bullet1 = {
-      x: tmpx1,
-      y: tmpy1,
-      direction: item.direction,
-      team: item.team,
-      life: item.BULLET_LIFE,
-      socketID: item.socketID,
-      damage: item.damage,
-    };
-    const bullet2 = {
-      x: tmpx2,
-      y: tmpy2,
-      direction: item.direction,
-      team: item.team,
-      life: item.BULLET_LIFE,
-      socketID: item.socketID,
-      damage: item.damage,
-    };
-    stack.push(bullet1);
-    stack.push(bullet2);
+    stack.push(createBullet(tmpx1, tmpy1, item.direction, item));
+    stack.push(createBullet(tmpx2, tmpy2, item.direction, item));
 
     if (item.level > 2) {
       let dir1;
@@ -166,29 +157,22 @@ const makeBullet = (item) => {
         dir1 = UR;
         dir2 = DR;
       }
-
-      const bullet1 = {
-        x: tmpx1,
-        y: tmpy1,
-        direction: dir1,
-        team: item.team,
-        life: item.BULLET_LIFE,
-        socketID: item.socketID,
-        damage: item.damage,
-      };
-      const bullet2 = {
-        x: tmpx2,
-        y: tmpy2,
-        direction: dir2,
-        team: item.team,
-        life: item.BULLET_LIFE,
-        socketID: item.socketID,
-        damage: item.damage,
-      };
-      stack.push(bullet1);
-      stack.push(bullet2);
+      stack.push(createBullet(tmpx1, tmpy1, dir1, item));
+      stack.push(createBullet(tmpx2, tmpy2, dir2, item));
     }
   }
+};
+
+const createBullet = (_x, _y, _dir, item) => {
+  return {
+    x: _x,
+    y: _y,
+    direction: _dir,
+    team: item.team,
+    life: item.BULLET_LIFE,
+    socketID: item.socketID,
+    damage: item.damage,
+  };
 };
 
 const updateStack = () => {
@@ -209,25 +193,25 @@ const updateStack = () => {
 };
 
 const bulletMove = (item) => {
-  if (item.direction === UP) item.y -= 2;
-  if (item.direction === DOWN) item.y += 2;
-  if (item.direction === LEFT) item.x -= 2;
-  if (item.direction === RIGHT) item.x += 2;
+  if (item.direction === UP) item.y -= BULLET_SPEED;
+  if (item.direction === DOWN) item.y += BULLET_SPEED;
+  if (item.direction === LEFT) item.x -= BULLET_SPEED;
+  if (item.direction === RIGHT) item.x += BULLET_SPEED;
   if (item.direction === UL) {
-    item.y -= 2;
-    item.x -= 2;
+    item.y -= BULLET_SPEED;
+    item.x -= BULLET_SPEED;
   }
   if (item.direction === UR) {
-    item.y -= 2;
-    item.x += 2;
+    item.y -= BULLET_SPEED;
+    item.x += BULLET_SPEED;
   }
   if (item.direction === DL) {
-    item.y += 2;
-    item.x -= 2;
+    item.y += BULLET_SPEED;
+    item.x -= BULLET_SPEED;
   }
   if (item.direction === DR) {
-    item.y += 2;
-    item.x += 2;
+    item.y += BULLET_SPEED;
+    item.x += BULLET_SPEED;
   }
 
   item.life -= 1;
@@ -236,10 +220,10 @@ const bulletMove = (item) => {
 /********* Tank Action *************/
 
 const tankMove = (item) => {
-  if (item.direction === UP) item.y -= 1;
-  if (item.direction === DOWN) item.y += 1;
-  if (item.direction === LEFT) item.x -= 1;
-  if (item.direction === RIGHT) item.x += 1;
+  if (item.direction === UP) item.y -= TANK_SPEED;
+  if (item.direction === DOWN) item.y += TANK_SPEED;
+  if (item.direction === LEFT) item.x -= TANK_SPEED;
+  if (item.direction === RIGHT) item.x += TANK_SPEED;
   return item;
 };
 
@@ -260,9 +244,9 @@ const ydelte = (direction) => {
 };
 
 const setInputDir = (item) => {
+  if (item.y < 3 && item.direction === UP) return item;
   if (item.x < 3 && item.direction === LEFT) return item;
   if (item.x > BOARD_SIZE - 3 && item.direction === RIGHT) return item;
-  if (item.y < 3 && item.direction === UP) return item;
   if (item.y > BOARD_SIZE - 3 && item.direction === DOWN) return item;
 
   return tankMove(item);
@@ -320,17 +304,18 @@ const checkCrash = () => {
 
 const mainLoop = () => {
   updateUser();
-  updateStack();
   checkCrash();
+  updateStack();
 };
 
 const updateUser = () => {
+  // this takes long time~ must reduce TL
   // tank is broken, change it to DEATH
   users = users.map((item) =>
     item.alive === BREAK ? { ...item, alive: DEATH } : item
   );
   // level update
-  users = users.map((item) => updateLevel(item));
+  users = users.map((item) => updateLevelwithKill(item));
   // if tank is defenseTime, decrease defenseTime
   users = users.map((item) =>
     item.defensetime > 0 ? { ...item, defensetime: item.defensetime - 1 } : item
@@ -340,7 +325,7 @@ const updateUser = () => {
   }
 };
 
-const updateLevel = (item) => {
+const updateLevelwithKill = (item) => {
   if (item.kill >= 6 && item.level < 3) return updateTankWithBonus(item, 3);
   else if (item.kill >= 4 && item.level < 2)
     return updateTankWithBonus(item, 2);
@@ -390,15 +375,15 @@ const createUser = (data) => {
     team: data.team || 1,
     socketID: data.socketID,
 
-    level: 0,
+    level: TANK_LEVEL,
     kill: 0,
     death: 0,
     health: TANK_HEALTH,
     alive: ALIVE,
 
     direction: getStartDirection(),
-    x: getStartPoint(BOARD_SIZE).x,
-    y: getStartPoint(BOARD_SIZE).y,
+    x: getStartPoint(BOARD_SIZE, data.team).x,
+    y: getStartPoint(BOARD_SIZE, data.team).y,
 
     shotCycle: SHOT_CYCLE,
     shottime: 0,

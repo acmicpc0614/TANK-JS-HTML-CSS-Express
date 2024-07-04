@@ -57,12 +57,12 @@ body {
   scale: 1;
   color: #eeeeee;
 }
-.food {
+.team1 {
   background-color: rgb(255, 97, 97);
   border-radius: 50%;
   /* border: 0.25vmin solid gray; */
 }
-.food2 {
+.team2 {
   background-color: rgb(61, 61, 192);
   border-radius: 50%;
   /* border: 0.25vmin solid gray; */
