@@ -57,16 +57,53 @@ body {
   scale: 1;
   color: #eeeeee;
 }
-.team1 {
-  background-color: rgb(255, 97, 97);
+.team1-1 {
+  background-color: rgb(243, 94, 94);
   border-radius: 50%;
   /* border: 0.25vmin solid gray; */
 }
-.team2 {
-  background-color: rgb(61, 61, 192);
+
+.team1-2 {
+  background-color: rgb(255, 208, 0);
   border-radius: 50%;
   /* border: 0.25vmin solid gray; */
 }
+
+.team1-3 {
+  background-color: rgb(255, 145, 0);
+  border-radius: 50%;
+  /* border: 0.25vmin solid gray; */
+}
+
+.team1-4 {
+  background-color: rgb(255, 0, 0);
+  border-radius: 50%;
+  /* border: 0.25vmin solid gray; */
+}
+
+.team2-1 {
+  background-color: rgb(103, 103, 253);
+  border-radius: 50%;
+  /* border: 0.25vmin solid gray; */
+}
+.team2-2 {
+  background-color: rgb(0, 255, 21);
+  border-radius: 50%;
+  /* border: 0.25vmin solid gray; */
+}
+
+.team2-3 {
+  background-color: rgb(0, 217, 255);
+  border-radius: 50%;
+  /* border: 0.25vmin solid gray; */
+}
+
+.team2-4 {
+  background-color: rgb(0, 0, 255);
+  border-radius: 50%;
+  /* border: 0.25vmin solid gray; */
+}
+
 
 .bullet {
   background-color: rgb(255, 255, 255);
@@ -85,24 +122,25 @@ body {
 
 #t1-txt {
   color: rgb(255, 97, 97);
-  font-size: 100px;
+  font-size: 80px;
   text-align: center;
   width: 100px;
 }
 
 #t2-txt {
   color: rgb(61, 61, 192);
-  font-size: 100px;
+  font-size: 80px;
   text-align: center;
   width: 100px;
 }
 
 #vs {
   color: rgb(255, 255, 255);
-  font-size: 100px;
+  font-size: 80px;
   text-align: center;
   width: 20px;
-
+  margin-top: 1rem;
+  margin-bottom: 1rem;
 }
 
 .tank-state {
@@ -117,6 +155,7 @@ body {
   flex-direction: row;
   gap: 1rem;
 }
+
 #register {
   margin-top: 3rem;
   margin-bottom: 3rem;
@@ -155,4 +194,21 @@ body {
   color: #fff;
   z-index: 10;
   font-size: 10px;
+}
+
+.heart-fill {
+  width: 32px;
+  height: 32px;
+  background-image: url("./images/starFill.svg");
+}
+
+.heart-empty {
+  width: 32px;
+  height: 32px;
+  background-image: url("./images/starEmpty.svg");
+}
+
+#health-board{
+  display: flex;
+  flex-direction: row;
 }

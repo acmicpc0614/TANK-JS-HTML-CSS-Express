@@ -20,7 +20,7 @@ server_http.listen(PORT, () => {
 const client = express();
 client.use(express.static("public"));
 const client_http = require("http").Server(client);
-const F_PORT = 3333;
+const F_PORT = 5454;
 
 client.get("/", (req, res) => {
   res.send("client is running");
@@ -58,21 +58,21 @@ const TANK_SPEED = 1;
 const TANK_LEVEL = 0;
 
 const TANK_HEALTH = 100;
-const BOUNS_HEALTH = [0, 50, 50, 100];
+const BOUNS_HEALTH = [0, 50, 100, 150];
 
 /*********Shut Setting*************/
 
 const SHOT_CYCLE = FRAME; // every 1 sec shut
 const BONUS_SHOT_CYCLE = [0, -2, -4, -8]; // every 1 sec shut
 
-const BULLET_LIFE = FRAME * 2; // 2 sec life
+const BULLET_LIFE = Math.floor(FRAME * 1.5); // 2 sec life
 const BONUS_BULLET_LIFE = [0, 3, 6, 9]; // every 1 sec shut
 
 const BULLET_SPEED = 2;
 const CREAT_TIME = FRAME * 3; // 3 sec defense
 
 const BULLET_DAMAGE = 50;
-// const BOUNS_DAMAGE = [0, 10, 20, 50];
+// const BOUNS_DAMAGE = [0, 10, 40, 60]; // 40, 50, 80, 100
 const BOUNS_DAMAGE = [0, 0, 0, 0];
 
 /********* default Setting *************/
@@ -172,6 +172,7 @@ const createBullet = (_x, _y, _dir, item) => {
     life: item.BULLET_LIFE,
     socketID: item.socketID,
     damage: item.damage,
+    level: item.level,
   };
 };
 

@@ -30,7 +30,7 @@ let level;
 let health;
 let damage;
 
-/*********Transfer*************/
+/********* Transfer *************/
 
 socket.on("connect", () => {
   console.log("connected with server.");
@@ -52,7 +52,7 @@ socket.on("stateOfUsers", (data) => {
   draw();
 });
 
-/*********login*************/
+/********* login *************/
 const handleTeam1 = () => {
   const team1 = document.getElementById("t1");
   team1.classList.remove("noneTeam");
@@ -90,7 +90,7 @@ const sendMessage = () => {
   }
 };
 
-/*********TANK Setting*************/
+/********* TANK Setting *************/
 
 const init = (newUser) => {
   TANK_DIR = newUser.direction;
@@ -105,10 +105,7 @@ const init = (newUser) => {
   inputTeamScore();
 };
 
-/*********  ACTION  *************/
-const main = () => {
-  getInputData();
-};
+/********* State Setting *************/
 
 const inputScore = (newUser) => {
   let score = document.getElementById("score");
@@ -119,6 +116,7 @@ const inputScore = (newUser) => {
 };
 
 const inputState = (level, health, damage) => {
+  // level state
   let levelboard = document.getElementById("level-board");
   levelboard.innerHTML = "";
   let levels = document.createElement("div");
@@ -127,21 +125,30 @@ const inputState = (level, health, damage) => {
   levels.classList.add("tank-state");
   levelboard.appendChild(levels);
 
+  // health state
+  let fillNumber = health / 50;
+  // let resNumber = health % 50 ? 1 : 0;
+  let resNumber = 0;
+  let emptyNumber = 5 - fillNumber - resNumber;
   let healthboard = document.getElementById("health-board");
   healthboard.innerHTML = "";
   let healths = document.createElement("div");
-  str = health + " health";
+  str = "";
+  for (let i = 0; i < fillNumber - resNumber; i++) str += "💖";
+  // if (resNumber > 0) str += "💔";
+  for (let i = 0; i < emptyNumber; i++) str += "🤍";
   healths.innerHTML = str;
   healths.classList.add("tank-state");
   healthboard.appendChild(healths);
 
-  let damageboard = document.getElementById("damage-board");
-  damageboard.innerHTML = "";
-  let damages = document.createElement("div");
-  str = damage + " damage";
-  damages.innerHTML = str;
-  damages.classList.add("tank-state");
-  damageboard.appendChild(damages);
+  // damage state
+  // let damageboard = document.getElementById("damage-board");
+  // damageboard.innerHTML = "";
+  // let damages = document.createElement("div");
+  // str = damage + " damage";
+  // damages.innerHTML = str;
+  // damages.classList.add("tank-state");
+  // damageboard.appendChild(damages);
 };
 
 const inputTeamScore = () => {
@@ -162,6 +169,11 @@ const inputTeamScore = () => {
   let txt = document.createElement("div");
   txt.innerHTML = ":";
   vs.appendChild(txt);
+};
+
+/*********  ACTION  *************/
+const main = () => {
+  getInputData();
 };
 
 const getInputData = () => {
@@ -268,8 +280,8 @@ const drawBullet = (gameboard, stack) => {
     bulletElement.style.gridRowStart = segment.y;
     bulletElement.style.gridColumnStart = segment.x;
     segment.team === TEAM1
-      ? bulletElement.classList.add("team1")
-      : bulletElement.classList.add("team2");
+      ? bulletElement.classList.add(`team1-${segment.level + 1}`)
+      : bulletElement.classList.add(`team2-${segment.level + 1}`);
     gameboard.appendChild(bulletElement);
   }
 };
