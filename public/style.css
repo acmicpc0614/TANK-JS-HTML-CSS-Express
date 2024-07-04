@@ -212,3 +212,8 @@ body {
   display: flex;
   flex-direction: row;
 }
+
+.block-body {
+  background-color: rgb(255, 115, 0);
+  border: 1px solid rgb(255, 184, 90);
+}

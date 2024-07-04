@@ -183,6 +183,7 @@ const getInputData = () => {
 const draw = () => {
   gameBoard.innerHTML = "";
   drawBullet(gameBoard, stack);
+  drawBlock(gameBoard, BlockBody);
 
   for (item of users) {
     const tankBody = [];
@@ -283,5 +284,15 @@ const drawBullet = (gameboard, stack) => {
       ? bulletElement.classList.add(`team1-${segment.level + 1}`)
       : bulletElement.classList.add(`team2-${segment.level + 1}`);
     gameboard.appendChild(bulletElement);
+  }
+};
+
+const drawBlock = (gameboard, BlockBody) => {
+  for (block of BlockBody) {
+    const blockElement = document.createElement("div");
+    blockElement.style.gridRowStart = block.y;
+    blockElement.style.gridColumnStart = block.x;
+    blockElement.classList.add("block-body");
+    gameboard.appendChild(blockElement);
   }
 };
