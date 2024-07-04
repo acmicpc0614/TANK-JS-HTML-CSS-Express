@@ -1,6 +1,6 @@
 // Map 1
 
-module.exports = [
+const BlockBody = [
   { x: 30, y: 30 },
   { x: 30, y: 31 },
   { x: 30, y: 32 },
