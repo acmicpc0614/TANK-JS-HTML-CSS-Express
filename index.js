@@ -85,8 +85,12 @@ let mapInited = NONE;
 let mapData = new Map();
 
 /********* Active Setting *************/
+const ACTIVE_ITEM_CREATE_TIME = 20;
+
 const OMNI_SHUT = "OMNI_SHUT";
-const OMNI_SHUT_TIME = FRAME * 2;
+const OMNI_SHUT_TIME = FRAME * 5;
+const OMNI_SHUT_CYCLE = 5;
+const OMNI_DIR = [UP, DOWN, LEFT, RIGHT, UL, UR, DL, DR];
 
 /********* default Setting *************/
 
@@ -125,14 +129,7 @@ const shut = (item) => {
 
 const makeBullet = (item) => {
   if (item.activeType === OMNI_SHUT && item.activeTime > 0) {
-    stack.push(createBullet(item.x, item.y, UR, item));
-    stack.push(createBullet(item.x, item.y, UL, item));
-    stack.push(createBullet(item.x, item.y, DR, item));
-    stack.push(createBullet(item.x, item.y, DL, item));
-    stack.push(createBullet(item.x, item.y, UP, item));
-    stack.push(createBullet(item.x, item.y, DOWN, item));
-    stack.push(createBullet(item.x, item.y, LEFT, item));
-    stack.push(createBullet(item.x, item.y, RIGHT, item));
+    for (dir of OMNI_DIR) stack.push(createBullet(item.x, item.y, dir, item));
   } else if (item.level <= 1) {
     // level 0, 1   ------
     stack.push(createBullet(item.x, item.y, item.direction, item));
@@ -369,9 +366,11 @@ const checkCrash = () => {
     for (item of activeItems)
       if (isCrach(item, tank)) {
         tank.activeType = item.type;
-        tank.activeTime = OMNI_SHUT_TIME;
         item.time = 0;
-        tank.shotCycle = 6;
+        if (item.type === OMNI_SHUT) {
+          tank.activeTime = OMNI_SHUT_TIME;
+          tank.shotCycle = OMNI_SHUT_CYCLE;
+        }
       }
   }
 };
@@ -421,7 +420,8 @@ const updateUser = () => {
 
 const updateActiveItems = () => {
   let randNumber = Date.now();
-  if (randNumber % (FRAME * 10) === 0) {
+
+  if (randNumber % (FRAME * ACTIVE_ITEM_CREATE_TIME) === 0) {
     createActiveItems();
   }
   activeItems = activeItems.map((item) =>
