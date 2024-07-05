@@ -28,6 +28,7 @@ client.get("/", (req, res) => {
 
 let users = [];
 let stack = [];
+let activeItems = [];
 let T1S = 0;
 let T2S = 0;
 
@@ -83,6 +84,10 @@ const BlockBody = require("./public/maps/map1");
 let mapInited = NONE;
 let mapData = new Map();
 
+/********* Active Setting *************/
+const OMNI_SHUT = "OMNI_SHUT";
+const OMNI_SHUT_TIME = FRAME * 2;
+
 /********* default Setting *************/
 
 const getStartPoint = (BOARD_SIZE, team) => {
@@ -119,7 +124,16 @@ const shut = (item) => {
 };
 
 const makeBullet = (item) => {
-  if (item.level <= 1) {
+  if (item.activeType === OMNI_SHUT && item.activeTime > 0) {
+    stack.push(createBullet(item.x, item.y, UR, item));
+    stack.push(createBullet(item.x, item.y, UL, item));
+    stack.push(createBullet(item.x, item.y, DR, item));
+    stack.push(createBullet(item.x, item.y, DL, item));
+    stack.push(createBullet(item.x, item.y, UP, item));
+    stack.push(createBullet(item.x, item.y, DOWN, item));
+    stack.push(createBullet(item.x, item.y, LEFT, item));
+    stack.push(createBullet(item.x, item.y, RIGHT, item));
+  } else if (item.level <= 1) {
     // level 0, 1   ------
     stack.push(createBullet(item.x, item.y, item.direction, item));
   } else {
@@ -350,6 +364,16 @@ const checkCrash = () => {
         bullet.life = 0;
       }
   }
+
+  for (tank of users) {
+    for (item of activeItems)
+      if (isCrach(item, tank)) {
+        tank.activeType = item.type;
+        tank.activeTime = OMNI_SHUT_TIME;
+        item.time = 0;
+        tank.shotCycle = 6;
+      }
+  }
 };
 
 const mainLoop = () => {
@@ -357,6 +381,7 @@ const mainLoop = () => {
   updateUser();
   checkCrash();
   updateStack();
+  updateActiveItems();
 };
 
 const initMapDate = () => {
@@ -379,9 +404,47 @@ const updateUser = () => {
   users = users.map((item) =>
     item.defenseTime > 0 ? { ...item, defenseTime: item.defenseTime - 1 } : item
   );
+  // tank's active item time --
+  users = users.map((item) =>
+    item.activeTime > 0
+      ? { ...item, activeTime: item.activeTime - 1 }
+      : {
+          ...item,
+          shotCycle: SHOT_CYCLE,
+        }
+  );
+
   for (item of users) {
     shut(item);
   }
+};
+
+const updateActiveItems = () => {
+  let randNumber = Date.now();
+  if (randNumber % (FRAME * 10) === 0) {
+    createActiveItems();
+  }
+  activeItems = activeItems.map((item) =>
+    item.time > 0 ? { ...item, time: item.time - 1 } : item
+  );
+  activeItems = activeItems.filter((item) => item.time !== 0);
+};
+
+const createActiveItems = () => {
+  const item = {
+    type: OMNI_SHUT,
+    time: FRAME * 10,
+    x: createActiveItemsPosition().x,
+    y: createActiveItemsPosition().y,
+  };
+  activeItems.push(item);
+};
+
+const createActiveItemsPosition = () => {
+  let tmpx, tmpy;
+  tmpx = (Math.floor(Date.now() * Math.random()) % (BOARD_SIZE - 70)) + 35;
+  tmpy = (Math.floor(Date.now() * Math.random()) % (BOARD_SIZE - 10)) + 5;
+  return { x: tmpx, y: tmpy };
 };
 
 const updateLevelwithKill = (item) => {
@@ -422,6 +485,7 @@ let broadcast = setInterval(() => {
   const data = {
     users: users,
     stack: stack,
+    activeItems: activeItems,
     T1S: T1S,
     T2S: T2S,
   };
@@ -449,6 +513,9 @@ const createUser = (data) => {
     defenseTime: CREAT_TIME,
     BULLET_LIFE: BULLET_LIFE,
     damage: BULLET_DAMAGE,
+
+    activeType: NONE,
+    activeTime: 0,
   };
 };
 

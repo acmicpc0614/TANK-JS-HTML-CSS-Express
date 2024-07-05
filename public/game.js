@@ -24,6 +24,7 @@ let myTeam = "";
 let TANK_DIR;
 let users = [];
 let stack = [];
+let activeItems = [];
 let T1S = 0;
 let T2S = 0;
 let level;
@@ -44,7 +45,7 @@ socket.on("newUserResponse", (newUser) => {
 
 socket.on("stateOfUsers", (data) => {
   users = data.users;
-  // console.log(users);
+  activeItems = data.activeItems;
   stack = data.stack;
   T1S = data.T1S;
   T2S = data.T2S;
@@ -184,6 +185,7 @@ const draw = () => {
   gameBoard.innerHTML = "";
   drawBullet(gameBoard, stack);
   drawBlock(gameBoard, BlockBody);
+  drawActiveItems(gameBoard, activeItems);
 
   for (item of users) {
     const tankBody = [];
@@ -294,5 +296,15 @@ const drawBlock = (gameboard, BlockBody) => {
     blockElement.style.gridColumnStart = block.x;
     blockElement.classList.add("block-body");
     gameboard.appendChild(blockElement);
+  }
+};
+
+const drawActiveItems = (gameBoard, activeItems) => {
+  for (item of activeItems) {
+    const itemElement = document.createElement("div");
+    itemElement.style.gridRowStart = item.y;
+    itemElement.style.gridColumnStart = item.x;
+    itemElement.classList.add("active-item");
+    gameBoard.appendChild(itemElement);
   }
 };

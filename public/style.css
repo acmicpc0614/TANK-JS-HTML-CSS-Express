@@ -12,6 +12,8 @@ body {
   background-color: black;
   width: 100vmin;
   height: 100vmin;
+  min-width: 550px;
+  min-height: 500px;
   display: grid;
   grid-template-rows: repeat(111, 1fr);
   grid-template-columns: repeat(111, 1fr);
@@ -124,6 +126,9 @@ body {
   color: rgb(255, 97, 97);
   font-size: 80px;
   text-align: center;
+  align-items: center;
+  justify-content: center;
+  display: flex;
   width: 100px;
 }
 
@@ -131,6 +136,9 @@ body {
   color: rgb(61, 61, 192);
   font-size: 80px;
   text-align: center;
+  align-items: center;
+  justify-content: center;
+  display: flex;
   width: 100px;
 }
 
@@ -159,7 +167,7 @@ body {
 #register {
   margin-top: 3rem;
   margin-bottom: 3rem;
-  width: 500px;
+  width: 300px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -216,4 +224,10 @@ body {
 .block-body {
   background-color: rgb(255, 115, 0);
   border: 1px solid rgb(255, 184, 90);
+}
+
+.active-item {
+  background-color: rgb(255, 255, 255);
+  border: 1px solid rgb(51, 255, 0);
+  border-radius: 2px;
 }
