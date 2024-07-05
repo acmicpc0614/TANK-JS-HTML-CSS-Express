@@ -20,7 +20,7 @@ server_http.listen(PORT, () => {
 const client = express();
 client.use(express.static("public"));
 const client_http = require("http").Server(client);
-const F_PORT = 5454;
+const F_PORT = 3222;
 
 client.get("/", (req, res) => {
   res.send("client is running");
@@ -84,14 +84,20 @@ const BlockBody = require("./public/maps/map1");
 let mapInited = NONE;
 let mapData = new Map();
 
-/********* Active Setting *************/
-const ACTIVE_ITEM_CREATE_TIME = 20;
+/********* Active Item Setting *************/
+const ACTIVE_ITEM_CREATE_TIME = 20; // every this time create item...
 
-const OMNI_SHUT = "OMNI_SHUT";
+const OMNI_SHUT = "OMNI_SHUT"; // omni direction shut *
 const OMNI_SHUT_TIME = FRAME * 5;
 const OMNI_SHUT_CYCLE = 5;
 const OMNI_DIR = [UP, DOWN, LEFT, RIGHT, UL, UR, DL, DR];
 
+const REGENERATION = "REGENERATION";
+const REGENERATION_TIME = FRAME * 2;
+const REGENERATION_HEALTH = 250;
+
+const ACTIVE_ITEM_TYPES = [OMNI_SHUT, REGENERATION];
+// const ACTIVE_ITEM_TYPES = [REGENERATION, REGENERATION];
 /********* default Setting *************/
 
 const getStartPoint = (BOARD_SIZE, team) => {
@@ -370,6 +376,10 @@ const checkCrash = () => {
         if (item.type === OMNI_SHUT) {
           tank.activeTime = OMNI_SHUT_TIME;
           tank.shotCycle = OMNI_SHUT_CYCLE;
+        } else if (item.type === REGENERATION) {
+          console.log("regeneration...");
+          tank.activeTime = REGENERATION_TIME;
+          tank.health = REGENERATION_HEALTH;
         }
       }
   }
@@ -430,9 +440,14 @@ const updateActiveItems = () => {
   activeItems = activeItems.filter((item) => item.time !== 0);
 };
 
+const getRandomActiveItem = () => {
+  let num = Math.floor(Date.now() * Math.random()) % ACTIVE_ITEM_TYPES.length;
+  return ACTIVE_ITEM_TYPES[num];
+};
+
 const createActiveItems = () => {
   const item = {
-    type: OMNI_SHUT,
+    type: getRandomActiveItem(),
     time: FRAME * 10,
     x: createActiveItemsPosition().x,
     y: createActiveItemsPosition().y,
