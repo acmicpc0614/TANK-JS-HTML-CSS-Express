@@ -238,3 +238,15 @@ body {
 .regeneration {
     background-color: rgb(102, 255, 0);
 }
+
+.level-update {
+    background-color: rgb(255, 255, 255);
+}
+
+.defense-item {
+    background-color: rgb(110, 110, 110);
+}
+
+.omni-shut {
+    background-color: rgb(255, 107, 107);
+}

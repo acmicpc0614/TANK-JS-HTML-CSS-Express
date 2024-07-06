@@ -5,6 +5,11 @@ const healthBoard = document.getElementById("health-bar");
 let gameOver = false;
 const FLAME = 1000;
 
+const REGENERATION = "REGENERATION";
+const LEVEL_UPDATE = "LEVEL_UPDATE";
+const DEFENSE_TIEM_ADD = "DEFENSE_TIEM_ADD";
+const OMNI_SHUT = "OMNI_SHUT";
+
 const ME = "ME";
 const OTHER = "OTHER";
 
@@ -30,6 +35,21 @@ let T2S = 0;
 let level;
 let health;
 let damage;
+
+const d1x = [2, 1, -2, -1];
+const d1y = [1, -2, -1, 2];
+
+const d2x = [-2, -2, 2, 2];
+const d2y = [-2, 2, -2, 2];
+
+const d3x = [-2, 2, 0, 0];
+const d3y = [0, 0, -2, 2];
+
+const d4x = [1, -2, -1, 2];
+const d4y = [2, -1, -2, -1];
+
+const ad1x = [-1, 0, 1, 1, 1, 0, -1, -1];
+const ad1y = [1, 1, 1, 0, -1, -1, -1, 0];
 
 /********* Transfer *************/
 
@@ -185,17 +205,46 @@ const draw = () => {
   gameBoard.innerHTML = "";
   drawBullet(gameBoard, stack);
   drawBlock(gameBoard, BlockBody);
-  drawActiveItems(gameBoard, activeItems);
+
+  for (item of activeItems) {
+    const activeItemBody = [];
+    activeItemBodyMake(activeItemBody, item.x, item.y, item.time);
+    drawActiveItems(gameBoard, activeItemBody, item.type);
+  }
 
   for (item of users) {
     const tankBody = [];
-    item.alive === ALIVE
-      ? staticStateTank(tankBody, item.x, item.y, item.direction)
-      : breakStateTank(tankBody, item.x, item.y);
+    const itemEffectBody = [];
+    if (item.alive === ALIVE) {
+      staticStateTank(tankBody, item.x, item.y, item.direction);
+      if (item.activeTime > 0)
+        activeItemEffect(itemEffectBody, item.x, item.y, item.activeTime);
+    } else breakStateTank(tankBody, item.x, item.y);
 
     const who = item.socketID === socket.id ? ME : OTHER;
     drawTank(gameBoard, tankBody, who, item.team, item.userName);
+    if (item.alive === ALIVE && item.activeTime > 0)
+      drawEffect(gameBoard, itemEffectBody, item.activeType);
   }
+};
+
+const activeItemEffect = (itemEffectBody, _x, _y, activeTime) => {
+  let tmp = activeTime;
+  for (let i = 0; i < 5; i++) {
+    if (tmp % 12 < 3) itemEffectBody[i] = { x: _x + d1x[i], y: _y + d1y[i] };
+    else if (tmp % 12 < 6)
+      itemEffectBody[i] = { x: _x + d2x[i], y: _y + d2y[i] };
+    else if (tmp % 12 < 9)
+      itemEffectBody[i] = { x: _x + d3x[i], y: _y + d3y[i] };
+    else itemEffectBody[i] = { x: _x + d4x[i], y: _y + d4y[i] };
+  }
+};
+
+const activeItemBodyMake = (activeItemBody, _x, _y, activeTime) => {
+  let tmp = Math.floor((activeTime % 32) / 4);
+
+  activeItemBody[0] = { x: _x + ad1x[tmp], y: _y + ad1y[tmp] };
+  activeItemBody[1] = { x: _x, y: _y };
 };
 
 const isGameOver = () => {
@@ -299,12 +348,31 @@ const drawBlock = (gameboard, BlockBody) => {
   }
 };
 
-const drawActiveItems = (gameBoard, activeItems) => {
-  for (item of activeItems) {
+const drawActiveItems = (gameBoard, activeItemBody, activeType) => {
+  // console.log(activeItemBody, activeType);
+  for (item of activeItemBody) {
     const itemElement = document.createElement("div");
     itemElement.style.gridRowStart = item.y;
     itemElement.style.gridColumnStart = item.x;
-    itemElement.classList.add("active-item");
+    if (activeType === REGENERATION) itemElement.classList.add("regeneration");
+    if (activeType === LEVEL_UPDATE) itemElement.classList.add("level-update");
+    if (activeType === DEFENSE_TIEM_ADD)
+      itemElement.classList.add("defense-item");
+    if (activeType === OMNI_SHUT) itemElement.classList.add("omni-shut");
+    gameBoard.appendChild(itemElement);
+  }
+};
+
+const drawEffect = (gameBoard, itemEffectBody, activeType) => {
+  for (item of itemEffectBody) {
+    const itemElement = document.createElement("div");
+    itemElement.style.gridRowStart = item.y;
+    itemElement.style.gridColumnStart = item.x;
+    if (activeType === REGENERATION) itemElement.classList.add("regeneration");
+    if (activeType === LEVEL_UPDATE) itemElement.classList.add("level-update");
+    if (activeType === DEFENSE_TIEM_ADD)
+      itemElement.classList.add("defense-item");
+    if (activeType === OMNI_SHUT) itemElement.classList.add("omni-shut");
     gameBoard.appendChild(itemElement);
   }
 };

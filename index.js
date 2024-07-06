@@ -85,7 +85,7 @@ let mapInited = NONE;
 let mapData = new Map();
 
 /********* Active Item Setting *************/
-const ACTIVE_ITEM_CREATE_TIME = 20; // every this time create item...
+const ACTIVE_ITEM_CREATE_TIME = 3; // every this time create item...
 
 const OMNI_SHUT = "OMNI_SHUT"; // omni direction shut *
 const OMNI_SHUT_TIME = FRAME * 5;
@@ -381,7 +381,7 @@ const checkCrash = () => {
 
   for (tank of users) {
     for (item of activeItems)
-      if (isCrach(item, tank)) {
+      if (isCrach(item, tank) && tank.activeTime < 1) {
         tank.activeType = item.type;
         item.time = 0;
         if (item.type === OMNI_SHUT) {
