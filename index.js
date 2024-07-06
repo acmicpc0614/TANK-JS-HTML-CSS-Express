@@ -32,6 +32,8 @@ let activeItems = [];
 let T1S = 0;
 let T2S = 0;
 
+const GAME_LIMIT = 100;
+
 /*********TANK Setting*************/
 
 const BOARD_SIZE = 111;
@@ -85,7 +87,7 @@ let mapInited = NONE;
 let mapData = new Map();
 
 /********* Active Item Setting *************/
-const ACTIVE_ITEM_CREATE_TIME = 3; // every this time create item...
+const ACTIVE_ITEM_CREATE_TIME = 20; // every this time create item...
 
 const OMNI_SHUT = "OMNI_SHUT"; // omni direction shut *
 const OMNI_SHUT_TIME = FRAME * 5;
@@ -385,20 +387,20 @@ const checkCrash = () => {
         tank.activeType = item.type;
         item.time = 0;
         if (item.type === OMNI_SHUT) {
-          console.log("omni shut item...");
+          // console.log("omni shut item...");
           tank.activeTime = OMNI_SHUT_TIME;
           tank.shotCycle = OMNI_SHUT_CYCLE;
         } else if (item.type === REGENERATION) {
-          console.log("regeneration item...");
+          // console.log("regeneration item...");
           tank.activeTime = REGENERATION_TIME;
           tank.health = REGENERATION_HEALTH;
         } else if (item.type === LEVEL_UPDATE) {
-          console.log("level update item...");
+          // console.log("level update item...");
           tank.activeTime = LEVEL_UPDATE_TIME;
           tank.level = Math.min(tank.level + 1, 3);
           tank.health = TANK_HEALTH + BOUNS_HEALTH[tank.level];
         } else if (item.type === DEFENSE_TIEM_ADD) {
-          console.log("defense item...");
+          // console.log("defense item...");
           tank.activeTime = DEFENSE_TIEM_ADD_TIEM;
           tank.defenseTime = DEFENSE_TIEM_ADD_TIEM;
         }
@@ -412,6 +414,29 @@ const mainLoop = () => {
   checkCrash();
   updateStack();
   updateActiveItems();
+  checkIsGameOver();
+};
+
+const checkIsGameOver = () => {
+  if (GAME_LIMIT <= Math.max(T1S, T2S)) {
+    let WinTeam = "";
+    T1S === T2S
+      ? (WinTeam = "Draw")
+      : T1S > T2S
+      ? (WinTeam = "Team 1 is WIN.")
+      : (WinTeam = "Team 2 is WIN.");
+    const data = {
+      msg: WinTeam,
+    };
+    clearInterval(broadcast);
+    socketIO.emit("stateOfGameOver", data);
+
+    users = [];
+    stack = [];
+    activeItems = [];
+    T1S = 0;
+    T2S = 0;
+  }
 };
 
 const initMapDate = () => {

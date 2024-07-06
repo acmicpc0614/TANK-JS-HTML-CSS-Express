@@ -25,6 +25,9 @@ const DOWN = "DOWN";
 const LEFT = "LEFT";
 const RIGHT = "RIGHT";
 
+const NONE = "NONE";
+const DONE = "DONE";
+
 let myTeam = "";
 let TANK_DIR;
 let users = [];
@@ -51,6 +54,8 @@ const d4y = [2, -1, -2, -1];
 const ad1x = [-1, 0, 1, 1, 1, 0, -1, -1];
 const ad1y = [1, 1, 1, 0, -1, -1, -1, 0];
 
+const ITEM_ROTATE_EFFECT = NONE;
+
 /********* Transfer *************/
 
 socket.on("connect", () => {
@@ -71,6 +76,11 @@ socket.on("stateOfUsers", (data) => {
   T2S = data.T2S;
   for (item of users) if (item.socketID === socket.id) init(item);
   draw();
+});
+
+socket.on("stateOfGameOver", (data) => {
+  let msg = data.msg;
+  alert(msg);
 });
 
 /********* login *************/
@@ -242,9 +252,10 @@ const activeItemEffect = (itemEffectBody, _x, _y, activeTime) => {
 
 const activeItemBodyMake = (activeItemBody, _x, _y, activeTime) => {
   let tmp = Math.floor((activeTime % 32) / 4);
+  activeItemBody[0] = { x: _x, y: _y };
 
-  activeItemBody[0] = { x: _x + ad1x[tmp], y: _y + ad1y[tmp] };
-  activeItemBody[1] = { x: _x, y: _y };
+  if (ITEM_ROTATE_EFFECT === NONE)
+    activeItemBody[1] = { x: _x + ad1x[tmp], y: _y + ad1y[tmp] };
 };
 
 const isGameOver = () => {
