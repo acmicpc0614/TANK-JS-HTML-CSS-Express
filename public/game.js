@@ -9,6 +9,9 @@ const REGENERATION = "REGENERATION";
 const LEVEL_UPDATE = "LEVEL_UPDATE";
 const DEFENSE_TIEM_ADD = "DEFENSE_TIEM_ADD";
 const OMNI_SHUT = "OMNI_SHUT";
+const STOP_ITEM = "STOP_ITEM";
+const OPPOSITE_ITEM = "OPPOSITE_ITEM";
+const DEATH_ITEM = "DEATH_ITEM";
 
 const ME = "ME";
 const OTHER = "OTHER";
@@ -313,6 +316,7 @@ const handleSet = (event) => {
   else if (event.key === "ArrowRight") setDirection(RIGHT);
   else if (event.key === "ArrowLeft") setDirection(LEFT);
 };
+
 const setDirection = (direction) => {
   const data = {
     socketID: socket.id,
@@ -360,6 +364,7 @@ const drawBlock = (gameboard, BlockBody) => {
 };
 
 const drawActiveItems = (gameBoard, activeItemBody, activeType) => {
+  // this is Effect maker for Item
   // console.log(activeItemBody, activeType);
   for (item of activeItemBody) {
     const itemElement = document.createElement("div");
@@ -370,11 +375,15 @@ const drawActiveItems = (gameBoard, activeItemBody, activeType) => {
     if (activeType === DEFENSE_TIEM_ADD)
       itemElement.classList.add("defense-item");
     if (activeType === OMNI_SHUT) itemElement.classList.add("omni-shut");
+    if (activeType === STOP_ITEM) itemElement.classList.add("omni-shut");
+    if (activeType === OPPOSITE_ITEM) itemElement.classList.add("level-update");
+    if (activeType === DEATH_ITEM) itemElement.classList.add("regeneration");
     gameBoard.appendChild(itemElement);
   }
 };
 
 const drawEffect = (gameBoard, itemEffectBody, activeType) => {
+  // this is Effect maker for tank
   for (item of itemEffectBody) {
     const itemElement = document.createElement("div");
     itemElement.style.gridRowStart = item.y;
