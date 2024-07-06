@@ -85,7 +85,7 @@ let mapInited = NONE;
 let mapData = new Map();
 
 /********* Active Item Setting *************/
-const ACTIVE_ITEM_CREATE_TIME = 2; // every this time create item...
+const ACTIVE_ITEM_CREATE_TIME = 20; // every this time create item...
 
 const OMNI_SHUT = "OMNI_SHUT"; // omni direction shut *
 const OMNI_SHUT_TIME = FRAME * 5;
@@ -94,13 +94,21 @@ const OMNI_DIR = [UP, DOWN, LEFT, RIGHT, UL, UR, DL, DR];
 
 const REGENERATION = "REGENERATION";
 const REGENERATION_TIME = FRAME * 2;
-const REGENERATION_HEALTH = 250;
+const REGENERATION_HEALTH = 200;
 
 const LEVEL_UPDATE = "LEVEL_UPDATE";
 const LEVEL_UPDATE_TIME = FRAME * 2;
 
-// const ACTIVE_ITEM_TYPES = [OMNI_SHUT, REGENERATION, LEVEL_UPDATE];
-const ACTIVE_ITEM_TYPES = [LEVEL_UPDATE, LEVEL_UPDATE];
+const DEFENSE_TIEM_ADD = "DEFENSE_TIEM_ADD";
+const DEFENSE_TIEM_ADD_TIEM = FRAME * 6;
+
+const ACTIVE_ITEM_TYPES = [
+  OMNI_SHUT,
+  REGENERATION,
+  LEVEL_UPDATE,
+  DEFENSE_TIEM_ADD,
+];
+// const ACTIVE_ITEM_TYPES = [DEFENSE_TIEM_ADD, DEFENSE_TIEM_ADD];
 /********* default Setting *************/
 
 const getStartPoint = (BOARD_SIZE, team) => {
@@ -376,19 +384,23 @@ const checkCrash = () => {
       if (isCrach(item, tank)) {
         tank.activeType = item.type;
         item.time = 0;
-
         if (item.type === OMNI_SHUT) {
+          console.log("omni shut item...");
           tank.activeTime = OMNI_SHUT_TIME;
           tank.shotCycle = OMNI_SHUT_CYCLE;
         } else if (item.type === REGENERATION) {
-          console.log("regeneration...");
+          console.log("regeneration item...");
           tank.activeTime = REGENERATION_TIME;
           tank.health = REGENERATION_HEALTH;
         } else if (item.type === LEVEL_UPDATE) {
-          console.log("level update...");
+          console.log("level update item...");
           tank.activeTime = LEVEL_UPDATE_TIME;
           tank.level = Math.min(tank.level + 1, 3);
           tank.health = TANK_HEALTH + BOUNS_HEALTH[tank.level];
+        } else if (item.type === DEFENSE_TIEM_ADD) {
+          console.log("defense item...");
+          tank.activeTime = DEFENSE_TIEM_ADD_TIEM;
+          tank.defenseTime = DEFENSE_TIEM_ADD_TIEM;
         }
       }
   }
@@ -455,13 +467,18 @@ const getRandomActiveItem = () => {
 };
 
 const createActiveItems = () => {
-  const item = {
-    type: getRandomActiveItem(),
-    time: FRAME * 10,
-    x: createActiveItemsPosition().x,
-    y: createActiveItemsPosition().y,
-  };
-  activeItems.push(item);
+  let sizeofActiveItem = Math.max(Math.floor(users.length / 3 + 1), 1);
+
+  // create active item as (n / 3)
+  for (let i = 0; i < sizeofActiveItem; i++) {
+    const item = {
+      type: getRandomActiveItem(),
+      time: FRAME * 10,
+      x: createActiveItemsPosition().x,
+      y: createActiveItemsPosition().y,
+    };
+    activeItems.push(item);
+  }
 };
 
 const createActiveItemsPosition = () => {
