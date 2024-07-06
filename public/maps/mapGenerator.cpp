@@ -53,7 +53,9 @@ main() {
 	for(int i = 0; i < len; i ++)	makeBlock(x1, BOARD_SIZE - i);
 	for(int i = 0; i < len; i ++)	makeBlock(x2, BOARD_SIZE - i);
 	for(int i = 0; i < len; i ++)	makeBlock(x1 - 1, BOARD_SIZE - i);
-	for(int i = 0; i < len; i ++)	makeBlock(x2 + 1, BOARD_SIZE - i);	
+	for(int i = 0; i < len; i ++)	makeBlock(x2 + 1, BOARD_SIZE - i);
+	
+		
 	
 	printf("]\n");
 	system("color a");
