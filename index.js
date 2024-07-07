@@ -36,6 +36,7 @@ let stack = [];
 let activeItems = [];
 let T1S = 0;
 let T2S = 0;
+let statusContent = "";
 
 /*********TANK Setting*************/
 
@@ -105,7 +106,7 @@ const LEVEL_UPDATE = "LEVEL_UPDATE";
 const LEVEL_UPDATE_TIME = FRAME * 2;
 
 const DEFENSE_TIEM_ADD = "DEFENSE_TIEM_ADD";
-const DEFENSE_TIEM_ADD_TIME = FRAME * 6;
+const DEFENSE_TIEM_ADD_TIME = FRAME * 10;
 
 const STOP_ITEM = "STOP_ITEM";
 const STOP_ITEM_TIME = FRAME * 8;
@@ -218,6 +219,7 @@ const createBullet = (_x, _y, _dir, item) => {
         socketID: item.socketID,
         damage: item.damage,
         level: item.level,
+        userName: item.userName
     };
 };
 
@@ -378,6 +380,8 @@ const checkCrash = () => {
                     if (item.defenseTime === 0) {
                         if (item.health - bullet.damage < 1) {
                             item.alive = BREAK;
+                            // statusContent = `😂${bullet.userName} ⚔ ${item.userName}☠`;
+                            statusContent = ` ${item.userName} killed by ${bullet.userName}`;
                             users = users.map(
                                 (
                                     user // user is who attach the item
@@ -589,6 +593,7 @@ let broadcast = setInterval(() => {
         activeItems: activeItems,
         T1S: T1S,
         T2S: T2S,
+        statusContent: statusContent
     };
     socketIO.emit("stateOfUsers", data);
 }, FRAME);
@@ -640,6 +645,7 @@ socketIO.on("connect", (socket) => {
 
     socket.on("changeDirection", (data) => {
         // console.log("change ...");
+        // console.log("Change", Date.now());
         users = users.map((item) =>
             item.socketID === data.socketID ?
             {
@@ -650,13 +656,16 @@ socketIO.on("connect", (socket) => {
             } :
             item
         );
+
     });
 
     socket.on("forward", (data) => {
         // console.log("forward ...");
+        // console.log("forward",Date.now());
         users = users.map((item) =>
             item.socketID === data.socketID ? setInputDir(item) : item
         );
+        // console.log("forward",Date.now());
     });
 });
 

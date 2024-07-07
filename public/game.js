@@ -3,7 +3,7 @@ const healthBoard = document.getElementById("health-bar");
 
 /*********GAME Setting*************/
 let gameOver = false;
-const FLAME = 1000;
+const FLAME = 100;
 
 const REGENERATION = "REGENERATION";
 const LEVEL_UPDATE = "LEVEL_UPDATE";
@@ -34,6 +34,7 @@ const DONE = "DONE";
 let myTeam = "";
 let TANK_DIR;
 let users = [];
+let tmpUsers = [];
 let stack = [];
 let activeItems = [];
 let T1S = 0;
@@ -41,6 +42,7 @@ let T2S = 0;
 let level;
 let health;
 let damage;
+let statusContent = "";
 
 const d1x = [2, 1, -2, -1];
 const d1y = [1, -2, -1, 2];
@@ -73,10 +75,16 @@ socket.on("newUserResponse", (newUser) => {
 
 socket.on("stateOfUsers", (data) => {
   users = data.users;
+  tmpUsers = users.map((item) => ({
+    userName: item.userName,
+    kill: item.kill,
+    team: item.team,
+  }));
   activeItems = data.activeItems;
   stack = data.stack;
   T1S = data.T1S;
   T2S = data.T2S;
+  statusContent = data.statusContent;
   for (item of users) if (item.socketID === socket.id) init(item);
   draw();
 });
@@ -203,6 +211,40 @@ const inputTeamScore = () => {
   let txt = document.createElement("div");
   txt.innerHTML = ":";
   vs.appendChild(txt);
+
+  let StatusElement = document.getElementById("state-content");
+  StatusElement.innerHTML = "";
+  let stateTxt = document.createElement("div");
+  stateTxt.innerHTML = statusContent;
+  stateTxt.classList.add("state-content");
+  StatusElement.appendChild(stateTxt);
+
+  tmpUsers.sort(function (a, b) {
+    return b.kill - a.kill;
+  });
+
+  let scr1 = document.getElementById("rank-1");
+  scr1.innerHTML = "";
+  let scrText1 = document.createElement("div");
+  scrText1.innerHTML = `${tmpUsers[0].userName} : ${tmpUsers[0].kill} - ${tmpUsers[0].team}`;
+  scrText1.classList.add("rank-1");
+  scr1.appendChild(scrText1);
+
+  let scr2 = document.getElementById("rank-2");
+  scr2.innerHTML = "";
+  let scrText2 = document.createElement("div");
+  scrText2.innerHTML = `${tmpUsers[1].userName} : ${tmpUsers[1].kill} - ${tmpUsers[1].team}`;
+  scrText2.classList.add("rank-2");
+
+  scr2.appendChild(scrText2);
+
+  let scr3 = document.getElementById("rank-3");
+  scr3.innerHTML = "";
+  let scrText3 = document.createElement("div");
+  scrText3.innerHTML = `${tmpUsers[2].userName} : ${tmpUsers[2].kill} - ${tmpUsers[2].team}`;
+  scrText3.classList.add("rank-3");
+
+  scr3.appendChild(scrText3);
 };
 
 /*********  ACTION  *************/
