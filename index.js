@@ -1,6 +1,6 @@
 const GAME_LIMIT = 100;
 const PORT = 8800;
-const F_PORT = 1200;
+const F_PORT = 3200;
 
 
 const express = require("express");
@@ -470,7 +470,7 @@ const checkIsGameOver = () => {
         };
         clearInterval(broadcast);
         socketIO.emit("stateOfGameOver", data);
-
+        console.log("Stoped______________");
         users = [];
         stack = [];
         activeItems = [];

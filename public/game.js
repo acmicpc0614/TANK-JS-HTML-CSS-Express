@@ -222,31 +222,32 @@ const inputTeamScore = () => {
   tmpUsers.sort(function (a, b) {
     return b.kill - a.kill;
   });
+  if (tmpUsers.length > 0) {
+    let scr1 = document.getElementById("rank-1");
+    scr1.innerHTML = "";
+    let scrText1 = document.createElement("div");
+    scrText1.innerHTML = `${tmpUsers[0].userName} : ${tmpUsers[0].kill} - ${tmpUsers[0].team}`;
+    scrText1.classList.add("rank-1");
+    scr1.appendChild(scrText1);
+  }
 
-  let scr1 = document.getElementById("rank-1");
-  scr1.innerHTML = "";
-  let scrText1 = document.createElement("div");
-  scrText1.innerHTML = `${tmpUsers[0].userName} : ${tmpUsers[0].kill} - ${tmpUsers[0].team}`;
-  scrText1.classList.add("rank-1");
-  scr1.appendChild(scrText1);
-
-  let scr2 = document.getElementById("rank-2");
-  scr2.innerHTML = "";
-  let scrText2 = document.createElement("div");
-  scrText2.innerHTML = `${tmpUsers[1].userName} : ${tmpUsers[1].kill} - ${tmpUsers[1].team}`;
-  scrText2.classList.add("rank-2");
-
-  scr2.appendChild(scrText2);
-
-  let scr3 = document.getElementById("rank-3");
-  scr3.innerHTML = "";
-  let scrText3 = document.createElement("div");
-  scrText3.innerHTML = `${tmpUsers[2].userName} : ${tmpUsers[2].kill} - ${tmpUsers[2].team}`;
-  scrText3.classList.add("rank-3");
-
-  scr3.appendChild(scrText3);
+  if (tmpUsers.length > 1) {
+    let scr2 = document.getElementById("rank-2");
+    scr2.innerHTML = "";
+    let scrText2 = document.createElement("div");
+    scrText2.innerHTML = `${tmpUsers[1].userName} : ${tmpUsers[1].kill} - ${tmpUsers[1].team}`;
+    scrText2.classList.add("rank-2");
+    scr2.appendChild(scrText2);
+  }
+  if (tmpUsers.length > 2) {
+    let scr3 = document.getElementById("rank-3");
+    scr3.innerHTML = "";
+    let scrText3 = document.createElement("div");
+    scrText3.innerHTML = `${tmpUsers[2].userName} : ${tmpUsers[2].kill} - ${tmpUsers[2].team}`;
+    scrText3.classList.add("rank-3");
+    scr3.appendChild(scrText3);
+  }
 };
-
 /*********  ACTION  *************/
 const main = () => {
   getInputData();

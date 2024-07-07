@@ -271,21 +271,21 @@ body {
 
 .rank-1 {
     margin-top: 50px;
-    color: #ff4444;
+    color: #3f3f3f;
     font-size: 20px;
     text-align: center;
     width: 200px;
 }
 .rank-2 {
-    margin-top: 50px;
-    color: #65ff72;
+    margin-top: 20px;
+    color: #575757;
     font-size: 20px;
     text-align: center;
     width: 200px;
 }
 .rank-3 {
-    margin-top: 50px;
-    color: #e5ff00;
+    margin-top: 20px;
+    color: #9c9c9c;
     font-size: 20px;
     text-align: center;
     width: 200px;
